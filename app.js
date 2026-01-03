@@ -243,6 +243,9 @@ function createTabElement(tab) {
     const deleteBtn = document.createElement('span');
     deleteBtn.className = 'tab-delete-btn';
     deleteBtn.textContent = '×';
+    deleteBtn.setAttribute('aria-label', 'Delete ' + tab.name);
+    deleteBtn.setAttribute('role', 'button');
+    deleteBtn.setAttribute('tabindex', '0');
     deleteBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         deleteTab(tab.id);
