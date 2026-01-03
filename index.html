@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Board - Track Your Daily Disciplines</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Daily Board</h1>
+            <p class="subtitle">Track your daily disciplines and tasks</p>
+        </header>
+
+        <div class="week-navigation">
+            <button id="prevDay" class="nav-btn">← Previous</button>
+            <div class="current-date">
+                <h2 id="currentDate"></h2>
+            </div>
+            <button id="nextDay" class="nav-btn">Next →</button>
+        </div>
+
+        <main>
+            <section class="disciplines-section">
+                <h3>Daily Disciplines</h3>
+                <div class="disciplines-list" id="disciplinesList">
+                    <!-- Fixed disciplines will be added here by JS -->
+                </div>
+            </section>
+
+            <section class="tasks-section">
+                <h3>Dynamic Tasks</h3>
+                <div class="add-task-container">
+                    <input 
+                        type="text" 
+                        id="newTaskInput" 
+                        placeholder="Add a new task..." 
+                        class="task-input"
+                    >
+                    <button id="addTaskBtn" class="add-btn">Add Task</button>
+                </div>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Dynamic tasks will be added here -->
+                </div>
+            </section>
+
+            <section class="lists-section">
+                <h3>Lists</h3>
+                <div class="tabs-container">
+                    <div class="tabs" id="tabsContainer">
+                        <!-- Tabs will be added here -->
+                    </div>
+                    <button id="addTabBtn" class="add-tab-btn">+ New List</button>
+                </div>
+                <div class="tab-content" id="tabContent">
+                    <div class="add-list-item-container">
+                        <input 
+                            type="text" 
+                            id="newListItemInput" 
+                            placeholder="Add list item..." 
+                            class="list-item-input"
+                        >
+                        <button id="addListItemBtn" class="add-btn">Add Item</button>
+                    </div>
+                    <div class="list-items" id="listItems">
+                        <!-- List items will be added here -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
