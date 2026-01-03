@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Daily Board</h1>
+      <div class="week-navigation">
+        <button id="prevWeek">← Previous Week</button>
+        <span id="weekDisplay"></span>
+        <button id="nextWeek">Next Week →</button>
+        <button id="today">Today</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="board-layout">
+        <!-- Daily Disciplines Section -->
+        <section class="daily-section">
+          <h2>Daily Disciplines</h2>
+          <div class="week-view" id="weekView"></div>
+        </section>
+
+        <!-- Lists Section -->
+        <section class="lists-section">
+          <h2>Lists</h2>
+          <div class="tabs-container">
+            <div class="tabs" id="listTabs"></div>
+            <button id="addTabBtn" class="add-tab-btn">+ Add Tab</button>
+          </div>
+          <div class="tab-content">
+            <textarea id="listContent" placeholder="Enter your list content here..."></textarea>
+            <button id="saveContentBtn">Save Content</button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
