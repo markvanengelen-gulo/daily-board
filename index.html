@@ -13,6 +13,33 @@
             <p class="subtitle">Track your daily disciplines and tasks</p>
             <div id="syncIndicator" class="sync-indicator" style="display: none;">Syncing...</div>
             <div id="errorMessage" class="error-message" style="display: none;"></div>
+            
+            <div class="config-section">
+                <details id="configDetails">
+                    <summary>⚙️ GitHub Sync Configuration</summary>
+                    <div class="config-content">
+                        <p>Configure your GitHub Personal Access Token to enable cross-device synchronization.</p>
+                        <p class="token-status" id="tokenStatus">Status: <span id="tokenStatusText">Not configured</span></p>
+                        <input 
+                            type="password" 
+                            id="githubTokenInput" 
+                            class="config-input" 
+                            placeholder="Enter your GitHub Personal Access Token"
+                        >
+                        <button id="saveTokenBtn" class="config-btn">Save Token</button>
+                        <button id="clearTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
+                        <p class="config-note">
+                            <strong>How to get a token:</strong><br>
+                            1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a><br>
+                            2. Click "Generate new token (classic)"<br>
+                            3. Select the <code>repo</code> scope<br>
+                            4. Copy the token and paste it above<br>
+                            <br>
+                            <strong>Note:</strong> Your token is stored securely in your browser and never sent to any third-party services.
+                        </p>
+                    </div>
+                </details>
+            </div>
         </header>
 
         <div class="week-navigation">

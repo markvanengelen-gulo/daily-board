@@ -138,6 +138,23 @@ header h1 {
     text-decoration: underline;
 }
 
+.token-status {
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.token-status span {
+    font-weight: bold;
+}
+
+.config-btn:not(:last-child) {
+    margin-right: 10px;
+}
+
+
 
 .week-navigation {
     display: flex;
@@ -236,6 +253,49 @@ section h3 {
     text-decoration: line-through;
     color: #999;
 }
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.priority-btn {
+    padding: 6px 12px;
+    background: #f5f5f5;
+    color: #999;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    line-height: 1;
+}
+
+.priority-btn:hover {
+    background: #fff9c4;
+    border-color: #fbc02d;
+    color: #f57f17;
+}
+
+.priority-btn.active {
+    background: #fff59d;
+    border-color: #fbc02d;
+    color: #f57f17;
+    font-size: 1.4rem;
+}
+
+.priority-task {
+    background: linear-gradient(135deg, #fff9c4 0%, #fffde7 100%);
+    border-left: 4px solid #fbc02d;
+    box-shadow: 0 4px 8px rgba(251, 192, 45, 0.2);
+}
+
+.priority-task:hover {
+    transform: translateX(5px);
+    box-shadow: 0 6px 12px rgba(251, 192, 45, 0.3);
+}
+
 
 .delete-btn {
     padding: 6px 12px;
@@ -411,20 +471,186 @@ section h3 {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
     .container {
-        padding: 20px;
+        padding: 15px;
+        border-radius: 12px;
     }
 
     header h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
+    }
+    
+    .subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .config-section {
+        font-size: 0.9rem;
+    }
+    
+    .config-section summary {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .config-content {
+        padding: 10px;
+    }
+    
+    .config-input {
+        font-size: 0.9rem;
+        padding: 8px;
+    }
+    
+    .config-btn {
+        font-size: 0.9rem;
+        padding: 8px 16px;
+        margin-bottom: 8px;
+        width: 100%;
+    }
+    
+    .config-note {
+        font-size: 0.8rem;
     }
 
     .week-navigation {
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
+        padding: 15px;
     }
 
     .nav-btn {
         width: 100%;
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    
+    .current-date h2 {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+    
+    main {
+        gap: 20px;
+    }
+    
+    section {
+        padding: 15px;
+    }
+    
+    section h3 {
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+    
+    .add-task-container {
+        flex-direction: column;
+    }
+    
+    .task-input {
+        width: 100%;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .add-btn {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    .discipline-item,
+    .task-item {
+        padding: 12px;
+        flex-wrap: wrap;
+    }
+    
+    .item-left {
+        width: 100%;
+        margin-bottom: 8px;
+    }
+    
+    .item-label {
+        font-size: 0.95rem;
+        word-break: break-word;
+    }
+    
+    .task-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+    
+    .priority-btn {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+    }
+    
+    .delete-btn {
+        flex: 1;
+    }
+    
+    .tabs-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .tabs {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .tab {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+        flex-shrink: 0;
+    }
+    
+    .add-tab-btn {
+        width: 100%;
+        margin-top: 8px;
+    }
+    
+    .list-textarea {
+        font-size: 0.95rem;
+        min-height: 150px;
+    }
+    
+    .sync-indicator,
+    .error-message {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        max-width: 100%;
+        word-wrap: break-word;
+    }
+}
+
+/* Additional mobile support for very small screens */
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .current-date h2 {
+        font-size: 1rem;
+    }
+    
+    section h3 {
+        font-size: 1.1rem;
+    }
+    
+    .checkbox {
+        width: 20px;
+        height: 20px;
     }
 }

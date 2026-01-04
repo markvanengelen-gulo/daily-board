@@ -211,6 +211,16 @@ function showError(message) {
     const errorDiv = document.getElementById('errorMessage');
     if (errorDiv) {
         errorDiv.textContent = message;
+        
+        // Change color based on message type
+        if (message.includes('successfully') || message.includes('✓')) {
+            errorDiv.style.background = '#e8f5e9';
+            errorDiv.style.color = '#2e7d32';
+        } else {
+            errorDiv.style.background = '#ffebee';
+            errorDiv.style.color = '#c62828';
+        }
+        
         errorDiv.style.display = 'block';
         setTimeout(() => {
             errorDiv.style.display = 'none';
@@ -301,6 +311,13 @@ function setupEventListeners() {
 
     // Add tab
     document.getElementById('addTabBtn').addEventListener('click', addTab);
+    
+    // GitHub token configuration
+    document.getElementById('saveTokenBtn').addEventListener('click', saveGitHubToken);
+    document.getElementById('clearTokenBtn').addEventListener('click', clearGitHubToken);
+    
+    // Update token status on load
+    updateTokenStatus();
 }
 
 // Date management
@@ -415,7 +432,7 @@ function loadTasks() {
 
     const dateKey = getDateKey();
     const dateEntry = getDateEntry(dateKey);
-    const tasks = dateEntry.tasks || [];
+    let tasks = dateEntry.tasks || [];
 
     if (tasks.length === 0) {
         const emptyState = document.createElement('div');
@@ -424,16 +441,26 @@ function loadTasks() {
         container.appendChild(emptyState);
         return;
     }
+    
+    // Sort tasks: priority tasks first, then by original order
+    const sortedTasks = [...tasks].map((task, origIndex) => ({ task, origIndex }));
+    sortedTasks.sort((a, b) => {
+        // Priority tasks come first
+        if (a.task.priority && !b.task.priority) return -1;
+        if (!a.task.priority && b.task.priority) return 1;
+        // Keep original order for tasks with same priority status
+        return a.origIndex - b.origIndex;
+    });
 
-    tasks.forEach((task, index) => {
-        const taskElement = createTaskElement(task, index);
+    sortedTasks.forEach(({ task, origIndex }) => {
+        const taskElement = createTaskElement(task, origIndex);
         container.appendChild(taskElement);
     });
 }
 
 function createTaskElement(task, index) {
     const div = document.createElement('div');
-    div.className = 'task-item';
+    div.className = 'task-item' + (task.priority ? ' priority-task' : '');
 
     const leftDiv = document.createElement('div');
     leftDiv.className = 'item-left';
@@ -450,14 +477,25 @@ function createTaskElement(task, index) {
 
     leftDiv.appendChild(checkbox);
     leftDiv.appendChild(label);
+    
+    const rightDiv = document.createElement('div');
+    rightDiv.className = 'task-actions';
+    
+    const priorityBtn = document.createElement('button');
+    priorityBtn.className = 'priority-btn' + (task.priority ? ' active' : '');
+    priorityBtn.textContent = '⭐';
+    priorityBtn.title = task.priority ? 'Remove from top 3' : 'Add to top 3';
+    priorityBtn.addEventListener('click', () => toggleTaskPriority(index));
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.textContent = 'Delete';
     deleteBtn.addEventListener('click', () => deleteTask(index));
 
+    rightDiv.appendChild(priorityBtn);
+    rightDiv.appendChild(deleteBtn);
     div.appendChild(leftDiv);
-    div.appendChild(deleteBtn);
+    div.appendChild(rightDiv);
 
     return div;
 }
@@ -491,6 +529,28 @@ function deleteTask(index) {
     const dateKey = getDateKey();
     const dateEntry = getDateEntry(dateKey);
     dateEntry.tasks.splice(index, 1);
+    saveDateEntry(dateKey, dateEntry);
+    loadTasks();
+}
+
+function toggleTaskPriority(index) {
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    const task = dateEntry.tasks[index];
+    
+    if (!task) return;
+    
+    // If trying to mark as priority, check if we already have 3 priority tasks
+    if (!task.priority) {
+        const priorityCount = dateEntry.tasks.filter(t => t.priority).length;
+        if (priorityCount >= 3) {
+            showError('You can only have 3 priority tasks at a time. Remove one first.');
+            return;
+        }
+    }
+    
+    // Toggle priority
+    task.priority = !task.priority;
     saveDateEntry(dateKey, dateEntry);
     loadTasks();
 }
@@ -667,4 +727,78 @@ function saveListTextarea() {
     const textarea = document.getElementById('listTextarea');
     const content = textarea.value;
     saveListItems(currentTabId, content);
+}
+
+// GitHub Token Configuration Functions
+function updateTokenStatus() {
+    const statusText = document.getElementById('tokenStatusText');
+    const tokenInput = document.getElementById('githubTokenInput');
+    
+    if (GITHUB_CONFIG.token) {
+        statusText.textContent = '✓ Configured';
+        statusText.style.color = '#51cf66';
+        tokenInput.placeholder = 'Token is configured (enter new token to update)';
+    } else {
+        statusText.textContent = '✗ Not configured';
+        statusText.style.color = '#ff6b6b';
+        tokenInput.placeholder = 'Enter your GitHub Personal Access Token';
+    }
+}
+
+function saveGitHubToken() {
+    const tokenInput = document.getElementById('githubTokenInput');
+    const token = tokenInput.value.trim();
+    
+    if (!token) {
+        showError('Please enter a valid GitHub token');
+        return;
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('githubToken', token);
+    
+    // Update the config
+    GITHUB_CONFIG.token = token;
+    
+    // Clear the input
+    tokenInput.value = '';
+    
+    // Update status
+    updateTokenStatus();
+    
+    // Show success message
+    showError('GitHub token saved successfully! The app will now sync with GitHub.');
+    
+    // Close the config section
+    const configDetails = document.getElementById('configDetails');
+    if (configDetails) {
+        configDetails.removeAttribute('open');
+    }
+    
+    // Fetch data from GitHub with new token
+    fetchDataFromGitHub().then(() => {
+        updateDateDisplay();
+        loadDisciplines();
+        loadTasks();
+        loadTabs();
+        loadCurrentTab();
+    });
+}
+
+function clearGitHubToken() {
+    if (!confirm('Are you sure you want to clear the GitHub token? The app will only save data locally after this.')) {
+        return;
+    }
+    
+    // Remove from localStorage
+    localStorage.removeItem('githubToken');
+    
+    // Update the config
+    GITHUB_CONFIG.token = '';
+    
+    // Update status
+    updateTokenStatus();
+    
+    // Show message
+    showError('GitHub token cleared. The app will now only save data locally.');
 }
