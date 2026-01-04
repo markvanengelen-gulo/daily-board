@@ -106,6 +106,10 @@ async function updateDataToGitHub(message = 'Update data') {
         if (metaResponse.ok) {
             const metaData = await metaResponse.json();
             currentSHA = metaData.sha;
+        } else {
+            const errorText = await metaResponse.text();
+            console.error('Failed to fetch SHA:', metaResponse.status, errorText);
+            throw new Error(`Failed to fetch file SHA (status: ${metaResponse.status}). ${errorText}`);
         }
         
         // Update file - properly encode UTF-8 to base64
@@ -134,7 +138,8 @@ async function updateDataToGitHub(message = 'Update data') {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`Failed to update data: ${errorData.message || response.status}`);
+            console.error('GitHub API error details:', errorData);
+            throw new Error(`Failed to update data (status: ${response.status}): ${errorData.message || JSON.stringify(errorData)}`);
         }
         
         const result = await response.json();
@@ -149,7 +154,27 @@ async function updateDataToGitHub(message = 'Update data') {
         console.error('Error updating data to GitHub:', error);
         isSyncing = false;
         hideSyncIndicator();
-        showError('Failed to save data to GitHub. Changes saved locally.');
+        
+        // Provide detailed error message
+        let errorMessage = 'Failed to save data to GitHub. Changes saved locally.';
+        if (error.message.includes('not configured')) {
+            errorMessage += ' (GitHub token not configured)';
+        } else if (error.message.includes('fetch file SHA')) {
+            errorMessage += ' (Unable to fetch file metadata - check token permissions)';
+        } else if (error.message.includes('status: 409')) {
+            errorMessage += ' (Conflict - file was modified elsewhere)';
+        } else if (error.message.includes('status: 401')) {
+            errorMessage += ' (Authentication failed - check token)';
+        } else if (error.message.includes('status: 403')) {
+            errorMessage += ' (Access denied - check token permissions)';
+        } else if (error.message.includes('status: 404')) {
+            errorMessage += ' (File not found - check repository and path)';
+        } else {
+            errorMessage += ` (${error.message})`;
+        }
+        
+        console.error('Detailed error:', errorMessage);
+        showError(errorMessage);
         
         // Save to localStorage as fallback
         saveToLocalStorage();
@@ -178,7 +203,7 @@ function showError(message) {
         errorDiv.style.display = 'block';
         setTimeout(() => {
             errorDiv.style.display = 'none';
-        }, 5000);
+        }, 10000);
     }
 }
 
@@ -254,10 +279,13 @@ function setupEventListeners() {
         if (e.key === 'Enter') addTask();
     });
 
-    // List items
-    document.getElementById('addListItemBtn').addEventListener('click', addListItem);
-    document.getElementById('newListItemInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addListItem();
+    // List textarea - auto-save on blur
+    const listTextarea = document.getElementById('listTextarea');
+    listTextarea.addEventListener('blur', saveListTextarea);
+    listTextarea.addEventListener('input', () => {
+        // Debounce auto-save on input
+        clearTimeout(listTextarea.saveTimeout);
+        listTextarea.saveTimeout = setTimeout(() => saveListTextarea(), 1000);
     });
 
     // Add tab
@@ -311,7 +339,7 @@ function saveTabs(tabs) {
 
 function getListItems(tabId) {
     if (!appData.listItems[tabId]) {
-        appData.listItems[tabId] = [];
+        appData.listItems[tabId] = '';
     }
     return appData.listItems[tabId];
 }
@@ -611,84 +639,21 @@ function switchTab(tabId) {
 }
 
 function loadCurrentTab() {
-    const container = document.getElementById('listItems');
-    container.innerHTML = '';
-
-    if (!currentTabId) return;
-
-    const items = getListItems(currentTabId);
-
-    if (items.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.textContent = 'No items in this list. Add one above!';
-        container.appendChild(emptyState);
+    const textarea = document.getElementById('listTextarea');
+    
+    if (!currentTabId) {
+        textarea.value = '';
         return;
     }
 
-    items.forEach((item, index) => {
-        const itemElement = createListItemElement(item, index);
-        container.appendChild(itemElement);
-    });
-}
-
-function createListItemElement(item, index) {
-    const div = document.createElement('div');
-    div.className = 'list-item';
-
-    const leftDiv = document.createElement('div');
-    leftDiv.className = 'item-left';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'checkbox';
-    checkbox.checked = item.completed;
-    checkbox.addEventListener('change', () => toggleListItem(index, checkbox.checked));
-
-    const label = document.createElement('span');
-    label.className = 'item-label' + (item.completed ? ' completed' : '');
-    label.textContent = item.name;
-
-    leftDiv.appendChild(checkbox);
-    leftDiv.appendChild(label);
-
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = 'Delete';
-    deleteBtn.addEventListener('click', () => deleteListItem(index));
-
-    div.appendChild(leftDiv);
-    div.appendChild(deleteBtn);
-
-    return div;
-}
-
-function addListItem() {
-    const input = document.getElementById('newListItemInput');
-    const itemName = input.value.trim();
-
-    if (!itemName || !currentTabId) return;
-
     const items = getListItems(currentTabId);
-    items.push({ name: itemName, completed: false });
-    saveListItems(currentTabId, items);
-
-    input.value = '';
-    loadCurrentTab();
+    textarea.value = items;
 }
 
-function toggleListItem(index, isCompleted) {
-    const items = getListItems(currentTabId);
-    if (items[index]) {
-        items[index].completed = isCompleted;
-        saveListItems(currentTabId, items);
-        loadCurrentTab();
-    }
-}
-
-function deleteListItem(index) {
-    const items = getListItems(currentTabId);
-    items.splice(index, 1);
-    saveListItems(currentTabId, items);
-    loadCurrentTab();
+function saveListTextarea() {
+    if (!currentTabId) return;
+    
+    const textarea = document.getElementById('listTextarea');
+    const content = textarea.value;
+    saveListItems(currentTabId, content);
 }
