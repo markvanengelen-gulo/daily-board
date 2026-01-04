@@ -53,16 +53,16 @@ To enable cross-device synchronization:
    - Select the `repo` scope (required for reading/writing repository files)
    - Click "Generate token" and copy it
 
-2. **Configure the Token in the App**:
-   - Open the Daily Board app
-   - Click on "GitHub Configuration" to expand the section
-   - Paste your GitHub Personal Access Token
-   - Click "Save Token"
+2. **Configure the Token**:
+   - Open your browser's developer console (F12)
+   - Run: `localStorage.setItem('githubToken', 'YOUR_TOKEN_HERE')`
+   - Replace `YOUR_TOKEN_HERE` with your actual token
+   - Refresh the page
 
 3. **Start Syncing**:
    - The app will automatically fetch the latest data from your repository
    - All changes (tasks, disciplines, lists) will be synced to `data.json`
-   - Access your data from any device with the same configuration
+   - Access your data from any device by setting the same token in localStorage
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
 
@@ -79,6 +79,7 @@ To enable cross-device synchronization:
 ### Managing Lists
 - Click "+ New List" to create a new list tab
 - Click on a tab to switch between lists
+- Click the ✎ (edit) icon on a tab to rename it
 - Click the × on a tab to delete a list (you must have at least one)
 - Add items to the current list using the input field
 

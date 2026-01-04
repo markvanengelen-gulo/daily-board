@@ -327,6 +327,26 @@ section h3 {
     color: white;
 }
 
+.tab-name {
+    user-select: none;
+}
+
+.tab-edit-btn {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    margin-left: 2px;
+    opacity: 0.6;
+}
+
+.tab-edit-btn:hover {
+    opacity: 1;
+    color: #51cf66;
+}
+
 .tab-delete-btn {
     background: transparent;
     border: none;

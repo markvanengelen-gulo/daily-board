@@ -217,7 +217,6 @@ function loadFromLocalStorage() {
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     setupEventListeners();
-    setupTokenConfig();
 });
 
 async function initializeApp() {
@@ -242,44 +241,6 @@ async function initializeApp() {
     loadTasks();
     loadTabs();
     loadCurrentTab();
-}
-
-function setupTokenConfig() {
-    const tokenInput = document.getElementById('tokenInput');
-    const saveTokenBtn = document.getElementById('saveTokenBtn');
-    
-    if (tokenInput && saveTokenBtn) {
-        // Load existing token (masked)
-        if (GITHUB_CONFIG.token) {
-            tokenInput.value = '•'.repeat(20);
-        }
-        
-        saveTokenBtn.addEventListener('click', () => {
-            const token = tokenInput.value.trim();
-            if (token && !token.startsWith('•')) {
-                // Basic token format validation
-                if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
-                    showError('Invalid token format. GitHub tokens should start with "ghp_" or "github_pat_"');
-                    return;
-                }
-                
-                localStorage.setItem('githubToken', token);
-                GITHUB_CONFIG.token = token;
-                tokenInput.value = '•'.repeat(20);
-                showError('GitHub token saved! The app will now sync with your repository.');
-                setTimeout(() => {
-                    document.getElementById('errorMessage').style.display = 'none';
-                }, 3000);
-                
-                fetchDataFromGitHub().then(() => {
-                    loadDisciplines();
-                    loadTasks();
-                    loadTabs();
-                    loadCurrentTab();
-                });
-            }
-        });
-    }
 }
 
 function setupEventListeners() {
@@ -519,7 +480,21 @@ function createTabElement(tab) {
     
     const nameSpan = document.createElement('span');
     nameSpan.textContent = tab.name;
+    nameSpan.className = 'tab-name';
     button.appendChild(nameSpan);
+
+    // Add edit button
+    const editBtn = document.createElement('span');
+    editBtn.className = 'tab-edit-btn';
+    editBtn.textContent = '✎';
+    editBtn.setAttribute('aria-label', 'Edit ' + tab.name);
+    editBtn.setAttribute('role', 'button');
+    editBtn.setAttribute('tabindex', '0');
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editTabName(tab.id, button);
+    });
+    button.appendChild(editBtn);
 
     const deleteBtn = document.createElement('span');
     deleteBtn.className = 'tab-delete-btn';
@@ -552,6 +527,53 @@ function addTab() {
     currentTabId = newTab.id;
     loadTabs();
     loadCurrentTab();
+}
+
+function editTabName(tabId, buttonElement) {
+    const tabs = getTabs();
+    const tab = tabs.find(t => t.id === tabId);
+    
+    if (!tab) return;
+    
+    const nameSpan = buttonElement.querySelector('.tab-name');
+    const currentName = tab.name;
+    
+    // Create input element
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentName;
+    input.className = 'tab-name-input';
+    input.style.cssText = 'padding: 4px 8px; border: 1px solid #667eea; border-radius: 4px; font-size: 0.95rem; width: 120px;';
+    
+    // Replace span with input
+    nameSpan.replaceWith(input);
+    input.focus();
+    input.select();
+    
+    // Save on blur or enter
+    const saveEdit = () => {
+        const newName = input.value.trim();
+        if (newName && newName !== currentName) {
+            tab.name = newName;
+            saveTabs(tabs);
+        }
+        loadTabs();
+    };
+    
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            saveEdit();
+        }
+    });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            loadTabs();
+        }
+    });
+    
+    // Stop propagation to prevent tab switching
+    input.addEventListener('click', (e) => e.stopPropagation());
 }
 
 function deleteTab(tabId) {
