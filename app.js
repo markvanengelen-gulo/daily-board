@@ -116,7 +116,7 @@ async function updateDataToGitHub(message = 'Update data') {
             const errorText = await metaResponse.text();
             console.error('Failed to fetch SHA:', metaResponse.status, errorText);
             errorType = 'FETCH_SHA_FAILED';
-            throw new Error(`Failed to fetch file SHA (status: ${metaResponse.status}). ${errorText}`);
+            throw new Error(`Failed to fetch file SHA (status: ${metaResponse.status})`);
         }
         
         // Update file - properly encode UTF-8 to base64
@@ -148,7 +148,8 @@ async function updateDataToGitHub(message = 'Update data') {
             const errorData = await response.json();
             console.error('GitHub API error details:', errorData);
             errorType = 'UPDATE_FAILED';
-            throw new Error(`Failed to update data (status: ${response.status}): ${errorData.message || JSON.stringify(errorData)}`);
+            const errorMsg = errorData.message || 'Unknown error';
+            throw new Error(`Failed to update data (status: ${response.status}): ${errorMsg}`);
         }
         
         const result = await response.json();
@@ -293,9 +294,9 @@ function setupEventListeners() {
     const listTextarea = document.getElementById('listTextarea');
     listTextarea.addEventListener('blur', saveListTextarea);
     listTextarea.addEventListener('input', () => {
-        // Debounce auto-save on input
+        // Debounce auto-save on input (2 seconds after user stops typing)
         clearTimeout(listTextareaSaveTimeout);
-        listTextareaSaveTimeout = setTimeout(() => saveListTextarea(), 1000);
+        listTextareaSaveTimeout = setTimeout(() => saveListTextarea(), 2000);
     });
 
     // Add tab
