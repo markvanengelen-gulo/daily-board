@@ -327,6 +327,26 @@ section h3 {
     color: white;
 }
 
+.tab-name {
+    user-select: none;
+}
+
+.tab-edit-btn {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 0;
+    margin-left: 2px;
+    opacity: 0.6;
+}
+
+.tab-edit-btn:hover {
+    opacity: 1;
+    color: #51cf66;
+}
+
 .tab-delete-btn {
     background: transparent;
     border: none;
@@ -339,6 +359,16 @@ section h3 {
 
 .tab-delete-btn:hover {
     color: #ff6b6b;
+}
+
+.tab-name-input {
+    padding: 4px 8px;
+    border: 1px solid #667eea;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 120px;
+    background: white;
+    color: #333;
 }
 
 .add-tab-btn {
