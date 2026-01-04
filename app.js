@@ -108,11 +108,11 @@ async function updateDataToGitHub(message = 'Update data') {
             currentSHA = metaData.sha;
         }
         
-        // Update file
-        const content = btoa(encodeURIComponent(JSON.stringify(appData, null, 2)).replace(/%([0-9A-F]{2})/g,
-            function(match, p1) {
-                return String.fromCharCode('0x' + p1);
-            }));
+        // Update file - properly encode UTF-8 to base64
+        const jsonString = JSON.stringify(appData, null, 2);
+        const bytes = new TextEncoder().encode(jsonString);
+        const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+        const content = btoa(binString);
         
         const response = await fetch(
             `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
