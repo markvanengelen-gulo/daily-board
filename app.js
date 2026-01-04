@@ -543,15 +543,18 @@ function editTabName(tabId, buttonElement) {
     input.type = 'text';
     input.value = currentName;
     input.className = 'tab-name-input';
-    input.style.cssText = 'padding: 4px 8px; border: 1px solid #667eea; border-radius: 4px; font-size: 0.95rem; width: 120px;';
     
     // Replace span with input
     nameSpan.replaceWith(input);
     input.focus();
     input.select();
     
+    let isCancelled = false;
+    
     // Save on blur or enter
     const saveEdit = () => {
+        if (isCancelled) return;
+        
         const newName = input.value.trim();
         if (newName && newName !== currentName) {
             tab.name = newName;
@@ -563,12 +566,13 @@ function editTabName(tabId, buttonElement) {
     input.addEventListener('blur', saveEdit);
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            saveEdit();
+            input.blur(); // This will trigger saveEdit via blur event
         }
     });
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            loadTabs();
+            isCancelled = true;
+            loadTabs(); // Cancel editing and restore original
         }
     });
     

@@ -361,6 +361,16 @@ section h3 {
     color: #ff6b6b;
 }
 
+.tab-name-input {
+    padding: 4px 8px;
+    border: 1px solid #667eea;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    width: 120px;
+    background: white;
+    color: #333;
+}
+
 .add-tab-btn {
     padding: 10px 16px;
     background: #667eea;
