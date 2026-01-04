@@ -275,6 +275,23 @@ section h3 {
     border-color: #667eea;
 }
 
+.list-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 200px;
+    transition: border-color 0.3s;
+}
+
+.list-textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
 .add-btn {
     padding: 12px 24px;
     background: #51cf66;

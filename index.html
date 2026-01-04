@@ -56,18 +56,12 @@
                     <button id="addTabBtn" class="add-tab-btn">+ New List</button>
                 </div>
                 <div class="tab-content" id="tabContent">
-                    <div class="add-list-item-container">
-                        <input 
-                            type="text" 
-                            id="newListItemInput" 
-                            placeholder="Add list item..." 
-                            class="list-item-input"
-                        >
-                        <button id="addListItemBtn" class="add-btn">Add Item</button>
-                    </div>
-                    <div class="list-items" id="listItems">
-                        <!-- List items will be added here -->
-                    </div>
+                    <textarea 
+                        id="listTextarea" 
+                        class="list-textarea"
+                        placeholder="Enter your list items here, one per line..."
+                        rows="10"
+                    ></textarea>
                 </div>
             </section>
         </main>
