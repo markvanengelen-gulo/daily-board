@@ -109,7 +109,10 @@ async function updateDataToGitHub(message = 'Update data') {
         }
         
         // Update file
-        const content = btoa(unescape(encodeURIComponent(JSON.stringify(appData, null, 2))));
+        const content = btoa(encodeURIComponent(JSON.stringify(appData, null, 2)).replace(/%([0-9A-F]{2})/g,
+            function(match, p1) {
+                return String.fromCharCode('0x' + p1);
+            }));
         
         const response = await fetch(
             `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
@@ -218,6 +221,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
+    // Show loading indicator
+    showSyncIndicator('loading');
+    
     // Try to load from localStorage backup first for immediate display
     loadFromLocalStorage();
     
@@ -230,7 +236,8 @@ async function initializeApp() {
     // Then fetch from GitHub in the background
     await fetchDataFromGitHub();
     
-    // Refresh UI with GitHub data
+    // Only refresh UI if data changed
+    updateDateDisplay();
     loadDisciplines();
     loadTasks();
     loadTabs();
@@ -250,10 +257,20 @@ function setupTokenConfig() {
         saveTokenBtn.addEventListener('click', () => {
             const token = tokenInput.value.trim();
             if (token && !token.startsWith('•')) {
+                // Basic token format validation
+                if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+                    showError('Invalid token format. GitHub tokens should start with "ghp_" or "github_pat_"');
+                    return;
+                }
+                
                 localStorage.setItem('githubToken', token);
                 GITHUB_CONFIG.token = token;
                 tokenInput.value = '•'.repeat(20);
-                alert('GitHub token saved! The app will now sync with your repository.');
+                showError('GitHub token saved! The app will now sync with your repository.');
+                setTimeout(() => {
+                    document.getElementById('errorMessage').style.display = 'none';
+                }, 3000);
+                
                 fetchDataFromGitHub().then(() => {
                     loadDisciplines();
                     loadTasks();
@@ -541,7 +558,7 @@ function deleteTab(tabId) {
     let tabs = getTabs();
     
     if (tabs.length <= 1) {
-        alert('You must have at least one list!');
+        showError('You must have at least one list!');
         return;
     }
 
