@@ -39,6 +39,106 @@ header h1 {
     font-size: 1.1rem;
 }
 
+.sync-indicator {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.error-message {
+    margin-top: 10px;
+    padding: 8px 16px;
+    background: #ffebee;
+    color: #c62828;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: inline-block;
+}
+
+.config-section {
+    margin-bottom: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.config-section details {
+    cursor: pointer;
+}
+
+.config-section summary {
+    padding: 10px;
+    font-weight: 600;
+    color: #667eea;
+    user-select: none;
+}
+
+.config-content {
+    padding: 15px;
+}
+
+.config-content p {
+    margin-bottom: 10px;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.config-input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.config-btn {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s;
+}
+
+.config-btn:hover {
+    background: #5568d3;
+}
+
+.config-note {
+    font-size: 0.85rem;
+    color: #999;
+    margin-top: 10px;
+}
+
+.config-note code {
+    background: #e0e0e0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.config-note a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.config-note a:hover {
+    text-decoration: underline;
+}
+
+
 .week-navigation {
     display: flex;
     justify-content: space-between;

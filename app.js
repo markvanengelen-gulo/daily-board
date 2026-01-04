@@ -1,3 +1,21 @@
+// GitHub API Configuration
+const GITHUB_CONFIG = {
+    owner: 'markvanengelen-gulo',
+    repo: 'daily-board',
+    branch: 'main',
+    dataPath: 'data.json',
+    token: localStorage.getItem('githubToken') || ''
+};
+
+// Data state
+let appData = {
+    dateEntries: {},
+    tabs: [],
+    listItems: {}
+};
+let currentSHA = null;
+let isSyncing = false;
+
 // Fixed daily disciplines
 const FIXED_DISCIPLINES = [
     'WH Breathing',
@@ -11,18 +29,240 @@ const FIXED_DISCIPLINES = [
 let currentDate = new Date();
 let currentTabId = null;
 
+// GitHub API Functions
+async function fetchDataFromGitHub() {
+    try {
+        showSyncIndicator('loading');
+        
+        // Fetch file metadata to get SHA
+        const metaResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
+            {
+                headers: GITHUB_CONFIG.token ? {
+                    'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                } : {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!metaResponse.ok) {
+            throw new Error(`Failed to fetch metadata: ${metaResponse.status}`);
+        }
+        
+        const metaData = await metaResponse.json();
+        currentSHA = metaData.sha;
+        
+        // Fetch actual data content
+        const dataResponse = await fetch(
+            `https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.dataPath}`
+        );
+        
+        if (!dataResponse.ok) {
+            throw new Error(`Failed to fetch data: ${dataResponse.status}`);
+        }
+        
+        const data = await dataResponse.json();
+        appData = data;
+        
+        hideSyncIndicator();
+        return data;
+    } catch (error) {
+        console.error('Error fetching data from GitHub:', error);
+        hideSyncIndicator();
+        showError('Failed to load data from GitHub. Using local fallback.');
+        
+        // Fallback to localStorage if GitHub fetch fails
+        return loadFromLocalStorageFallback();
+    }
+}
+
+async function updateDataToGitHub(message = 'Update data') {
+    if (isSyncing) {
+        console.log('Sync already in progress, skipping...');
+        return;
+    }
+    
+    try {
+        isSyncing = true;
+        showSyncIndicator('saving');
+        
+        if (!GITHUB_CONFIG.token) {
+            throw new Error('GitHub token not configured');
+        }
+        
+        // Fetch latest SHA before updating
+        const metaResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
+            {
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (metaResponse.ok) {
+            const metaData = await metaResponse.json();
+            currentSHA = metaData.sha;
+        }
+        
+        // Update file
+        const content = btoa(unescape(encodeURIComponent(JSON.stringify(appData, null, 2))));
+        
+        const response = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    content: content,
+                    sha: currentSHA,
+                    branch: GITHUB_CONFIG.branch
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to update data: ${errorData.message || response.status}`);
+        }
+        
+        const result = await response.json();
+        currentSHA = result.content.sha;
+        
+        isSyncing = false;
+        hideSyncIndicator();
+        
+        // Also save to localStorage as backup
+        saveToLocalStorage();
+    } catch (error) {
+        console.error('Error updating data to GitHub:', error);
+        isSyncing = false;
+        hideSyncIndicator();
+        showError('Failed to save data to GitHub. Changes saved locally.');
+        
+        // Save to localStorage as fallback
+        saveToLocalStorage();
+    }
+}
+
+function showSyncIndicator(type) {
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) {
+        indicator.textContent = type === 'loading' ? '↓ Loading...' : '↑ Saving...';
+        indicator.style.display = 'block';
+    }
+}
+
+function hideSyncIndicator() {
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) {
+        indicator.style.display = 'none';
+    }
+}
+
+function showError(message) {
+    const errorDiv = document.getElementById('errorMessage');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 5000);
+    }
+}
+
+// Local storage fallback functions
+function loadFromLocalStorageFallback() {
+    const data = {
+        dateEntries: {},
+        tabs: [],
+        listItems: {}
+    };
+    
+    // Try to load existing localStorage data
+    const tabsData = localStorage.getItem('dailyBoard_global_tabs');
+    if (tabsData) {
+        data.tabs = JSON.parse(tabsData);
+    } else {
+        data.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
+    }
+    
+    return data;
+}
+
+function saveToLocalStorage() {
+    localStorage.setItem('dailyBoard_backup', JSON.stringify(appData));
+}
+
+function loadFromLocalStorage() {
+    const backup = localStorage.getItem('dailyBoard_backup');
+    if (backup) {
+        appData = JSON.parse(backup);
+    }
+}
+
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
     initializeApp();
     setupEventListeners();
+    setupTokenConfig();
 });
 
-function initializeApp() {
+async function initializeApp() {
+    // Try to load from localStorage backup first for immediate display
+    loadFromLocalStorage();
+    
     updateDateDisplay();
     loadDisciplines();
     loadTasks();
     loadTabs();
     loadCurrentTab();
+    
+    // Then fetch from GitHub in the background
+    await fetchDataFromGitHub();
+    
+    // Refresh UI with GitHub data
+    loadDisciplines();
+    loadTasks();
+    loadTabs();
+    loadCurrentTab();
+}
+
+function setupTokenConfig() {
+    const tokenInput = document.getElementById('tokenInput');
+    const saveTokenBtn = document.getElementById('saveTokenBtn');
+    
+    if (tokenInput && saveTokenBtn) {
+        // Load existing token (masked)
+        if (GITHUB_CONFIG.token) {
+            tokenInput.value = '•'.repeat(20);
+        }
+        
+        saveTokenBtn.addEventListener('click', () => {
+            const token = tokenInput.value.trim();
+            if (token && !token.startsWith('•')) {
+                localStorage.setItem('githubToken', token);
+                GITHUB_CONFIG.token = token;
+                tokenInput.value = '•'.repeat(20);
+                alert('GitHub token saved! The app will now sync with your repository.');
+                fetchDataFromGitHub().then(() => {
+                    loadDisciplines();
+                    loadTasks();
+                    loadTabs();
+                    loadCurrentTab();
+                });
+            }
+        });
+    }
 }
 
 function setupEventListeners() {
@@ -63,22 +303,44 @@ function getDateKey() {
     return currentDate.toISOString().split('T')[0];
 }
 
-// Local storage helpers
-function getStorageKey(type) {
-    return `dailyBoard_${type}_${getDateKey()}`;
+// Data access helpers
+function getDateEntry(dateKey) {
+    if (!appData.dateEntries[dateKey]) {
+        appData.dateEntries[dateKey] = {
+            disciplines: {},
+            tasks: []
+        };
+    }
+    return appData.dateEntries[dateKey];
 }
 
-function getGlobalStorageKey(type) {
-    return `dailyBoard_global_${type}`;
+function saveDateEntry(dateKey, entry) {
+    appData.dateEntries[dateKey] = entry;
+    updateDataToGitHub('Update daily data');
 }
 
-function saveToStorage(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
+function getTabs() {
+    if (!appData.tabs || appData.tabs.length === 0) {
+        appData.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
+    }
+    return appData.tabs;
 }
 
-function loadFromStorage(key) {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
+function saveTabs(tabs) {
+    appData.tabs = tabs;
+    updateDataToGitHub('Update tabs');
+}
+
+function getListItems(tabId) {
+    if (!appData.listItems[tabId]) {
+        appData.listItems[tabId] = [];
+    }
+    return appData.listItems[tabId];
+}
+
+function saveListItems(tabId, items) {
+    appData.listItems[tabId] = items;
+    updateDataToGitHub('Update list items');
 }
 
 // Disciplines management
@@ -86,7 +348,9 @@ function loadDisciplines() {
     const container = document.getElementById('disciplinesList');
     container.innerHTML = '';
 
-    const savedDisciplines = loadFromStorage(getStorageKey('disciplines')) || {};
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    const savedDisciplines = dateEntry.disciplines || {};
 
     FIXED_DISCIPLINES.forEach((discipline, index) => {
         const isCompleted = savedDisciplines[index] || false;
@@ -120,9 +384,10 @@ function createDisciplineElement(name, index, isCompleted) {
 }
 
 function toggleDiscipline(index, isCompleted) {
-    const savedDisciplines = loadFromStorage(getStorageKey('disciplines')) || {};
-    savedDisciplines[index] = isCompleted;
-    saveToStorage(getStorageKey('disciplines'), savedDisciplines);
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    dateEntry.disciplines[index] = isCompleted;
+    saveDateEntry(dateKey, dateEntry);
     loadDisciplines();
 }
 
@@ -131,7 +396,9 @@ function loadTasks() {
     const container = document.getElementById('tasksList');
     container.innerHTML = '';
 
-    const tasks = loadFromStorage(getStorageKey('tasks')) || [];
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    const tasks = dateEntry.tasks || [];
 
     if (tasks.length === 0) {
         const emptyState = document.createElement('div');
@@ -184,27 +451,30 @@ function addTask() {
 
     if (!taskName) return;
 
-    const tasks = loadFromStorage(getStorageKey('tasks')) || [];
-    tasks.push({ name: taskName, completed: false });
-    saveToStorage(getStorageKey('tasks'), tasks);
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    dateEntry.tasks.push({ name: taskName, completed: false });
+    saveDateEntry(dateKey, dateEntry);
 
     input.value = '';
     loadTasks();
 }
 
 function toggleTask(index, isCompleted) {
-    const tasks = loadFromStorage(getStorageKey('tasks')) || [];
-    if (tasks[index]) {
-        tasks[index].completed = isCompleted;
-        saveToStorage(getStorageKey('tasks'), tasks);
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    if (dateEntry.tasks[index]) {
+        dateEntry.tasks[index].completed = isCompleted;
+        saveDateEntry(dateKey, dateEntry);
         loadTasks();
     }
 }
 
 function deleteTask(index) {
-    const tasks = loadFromStorage(getStorageKey('tasks')) || [];
-    tasks.splice(index, 1);
-    saveToStorage(getStorageKey('tasks'), tasks);
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    dateEntry.tasks.splice(index, 1);
+    saveDateEntry(dateKey, dateEntry);
     loadTasks();
 }
 
@@ -213,13 +483,7 @@ function loadTabs() {
     const container = document.getElementById('tabsContainer');
     container.innerHTML = '';
 
-    let tabs = loadFromStorage(getGlobalStorageKey('tabs')) || [];
-
-    // Initialize with a default tab if none exist
-    if (tabs.length === 0) {
-        tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
-        saveToStorage(getGlobalStorageKey('tabs'), tabs);
-    }
+    let tabs = getTabs();
 
     // Set current tab if not set
     if (!currentTabId && tabs.length > 0) {
@@ -258,7 +522,7 @@ function createTabElement(tab) {
 }
 
 function addTab() {
-    const tabs = loadFromStorage(getGlobalStorageKey('tabs')) || [];
+    const tabs = getTabs();
     const tabNumber = tabs.length + 1;
     const newTab = {
         id: 'tab_' + Date.now(),
@@ -266,7 +530,7 @@ function addTab() {
     };
 
     tabs.push(newTab);
-    saveToStorage(getGlobalStorageKey('tabs'), tabs);
+    saveTabs(tabs);
 
     currentTabId = newTab.id;
     loadTabs();
@@ -274,7 +538,7 @@ function addTab() {
 }
 
 function deleteTab(tabId) {
-    let tabs = loadFromStorage(getGlobalStorageKey('tabs')) || [];
+    let tabs = getTabs();
     
     if (tabs.length <= 1) {
         alert('You must have at least one list!');
@@ -282,10 +546,11 @@ function deleteTab(tabId) {
     }
 
     tabs = tabs.filter(tab => tab.id !== tabId);
-    saveToStorage(getGlobalStorageKey('tabs'), tabs);
+    saveTabs(tabs);
 
     // Clear items for this tab
-    localStorage.removeItem(getGlobalStorageKey(`listItems_${tabId}`));
+    delete appData.listItems[tabId];
+    updateDataToGitHub('Delete tab');
 
     // Switch to first tab if current tab was deleted
     if (currentTabId === tabId) {
@@ -308,7 +573,7 @@ function loadCurrentTab() {
 
     if (!currentTabId) return;
 
-    const items = loadFromStorage(getGlobalStorageKey(`listItems_${currentTabId}`)) || [];
+    const items = getListItems(currentTabId);
 
     if (items.length === 0) {
         const emptyState = document.createElement('div');
@@ -361,26 +626,26 @@ function addListItem() {
 
     if (!itemName || !currentTabId) return;
 
-    const items = loadFromStorage(getGlobalStorageKey(`listItems_${currentTabId}`)) || [];
+    const items = getListItems(currentTabId);
     items.push({ name: itemName, completed: false });
-    saveToStorage(getGlobalStorageKey(`listItems_${currentTabId}`), items);
+    saveListItems(currentTabId, items);
 
     input.value = '';
     loadCurrentTab();
 }
 
 function toggleListItem(index, isCompleted) {
-    const items = loadFromStorage(getGlobalStorageKey(`listItems_${currentTabId}`)) || [];
+    const items = getListItems(currentTabId);
     if (items[index]) {
         items[index].completed = isCompleted;
-        saveToStorage(getGlobalStorageKey(`listItems_${currentTabId}`), items);
+        saveListItems(currentTabId, items);
         loadCurrentTab();
     }
 }
 
 function deleteListItem(index) {
-    const items = loadFromStorage(getGlobalStorageKey(`listItems_${currentTabId}`)) || [];
+    const items = getListItems(currentTabId);
     items.splice(index, 1);
-    saveToStorage(getGlobalStorageKey(`listItems_${currentTabId}`), items);
+    saveListItems(currentTabId, items);
     loadCurrentTab();
 }

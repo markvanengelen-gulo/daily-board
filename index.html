@@ -11,7 +11,24 @@
         <header>
             <h1>Daily Board</h1>
             <p class="subtitle">Track your daily disciplines and tasks</p>
+            <div id="syncIndicator" class="sync-indicator" style="display: none;">Syncing...</div>
+            <div id="errorMessage" class="error-message" style="display: none;"></div>
         </header>
+
+        <div class="config-section">
+            <details>
+                <summary>GitHub Configuration</summary>
+                <div class="config-content">
+                    <p>To enable cross-device sync, configure your GitHub Personal Access Token:</p>
+                    <input type="password" id="tokenInput" placeholder="Enter GitHub Token" class="config-input">
+                    <button id="saveTokenBtn" class="config-btn">Save Token</button>
+                    <p class="config-note">
+                        Token needs <code>repo</code> scope. 
+                        <a href="https://github.com/settings/tokens/new?scopes=repo&description=Daily%20Board" target="_blank">Create token</a>
+                    </p>
+                </div>
+            </details>
+        </div>
 
         <div class="week-navigation">
             <button id="prevDay" class="nav-btn">← Previous</button>
