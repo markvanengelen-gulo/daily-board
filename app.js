@@ -207,25 +207,30 @@ function hideSyncIndicator() {
     }
 }
 
-function showError(message) {
-    const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.textContent = message;
+function showMessage(message, type = 'error') {
+    const messageDiv = document.getElementById('errorMessage');
+    if (messageDiv) {
+        messageDiv.textContent = message;
         
-        // Change color based on message type
-        if (message.includes('successfully') || message.includes('✓')) {
-            errorDiv.style.background = '#e8f5e9';
-            errorDiv.style.color = '#2e7d32';
+        // Set color based on message type
+        if (type === 'success') {
+            messageDiv.style.background = '#e8f5e9';
+            messageDiv.style.color = '#2e7d32';
         } else {
-            errorDiv.style.background = '#ffebee';
-            errorDiv.style.color = '#c62828';
+            messageDiv.style.background = '#ffebee';
+            messageDiv.style.color = '#c62828';
         }
         
-        errorDiv.style.display = 'block';
+        messageDiv.style.display = 'block';
         setTimeout(() => {
-            errorDiv.style.display = 'none';
+            messageDiv.style.display = 'none';
         }, 10000);
     }
+}
+
+// Keep showError for backward compatibility
+function showError(message) {
+    showMessage(message, 'error');
 }
 
 // Local storage fallback functions
@@ -767,7 +772,7 @@ function saveGitHubToken() {
     updateTokenStatus();
     
     // Show success message
-    showError('GitHub token saved successfully! The app will now sync with GitHub.');
+    showMessage('GitHub token saved successfully! The app will now sync with GitHub.', 'success');
     
     // Close the config section
     const configDetails = document.getElementById('configDetails');
@@ -800,5 +805,5 @@ function clearGitHubToken() {
     updateTokenStatus();
     
     // Show message
-    showError('GitHub token cleared. The app will now only save data locally.');
+    showMessage('GitHub token cleared. The app will now only save data locally.', 'success');
 }
