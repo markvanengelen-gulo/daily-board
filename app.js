@@ -28,6 +28,7 @@ const FIXED_DISCIPLINES = [
 // State management
 let currentDate = new Date();
 let currentTabId = null;
+let listTextareaSaveTimeout = null;
 
 // GitHub API Functions
 async function fetchDataFromGitHub() {
@@ -84,11 +85,15 @@ async function updateDataToGitHub(message = 'Update data') {
         return;
     }
     
+    let httpStatus = null;
+    let errorType = null;
+    
     try {
         isSyncing = true;
         showSyncIndicator('saving');
         
         if (!GITHUB_CONFIG.token) {
+            errorType = 'NO_TOKEN';
             throw new Error('GitHub token not configured');
         }
         
@@ -107,8 +112,10 @@ async function updateDataToGitHub(message = 'Update data') {
             const metaData = await metaResponse.json();
             currentSHA = metaData.sha;
         } else {
+            httpStatus = metaResponse.status;
             const errorText = await metaResponse.text();
             console.error('Failed to fetch SHA:', metaResponse.status, errorText);
+            errorType = 'FETCH_SHA_FAILED';
             throw new Error(`Failed to fetch file SHA (status: ${metaResponse.status}). ${errorText}`);
         }
         
@@ -137,8 +144,10 @@ async function updateDataToGitHub(message = 'Update data') {
         );
         
         if (!response.ok) {
+            httpStatus = response.status;
             const errorData = await response.json();
             console.error('GitHub API error details:', errorData);
+            errorType = 'UPDATE_FAILED';
             throw new Error(`Failed to update data (status: ${response.status}): ${errorData.message || JSON.stringify(errorData)}`);
         }
         
@@ -155,21 +164,22 @@ async function updateDataToGitHub(message = 'Update data') {
         isSyncing = false;
         hideSyncIndicator();
         
-        // Provide detailed error message
+        // Provide detailed error message based on error type and status code
         let errorMessage = 'Failed to save data to GitHub. Changes saved locally.';
-        if (error.message.includes('not configured')) {
+        
+        if (errorType === 'NO_TOKEN') {
             errorMessage += ' (GitHub token not configured)';
-        } else if (error.message.includes('fetch file SHA')) {
+        } else if (errorType === 'FETCH_SHA_FAILED') {
             errorMessage += ' (Unable to fetch file metadata - check token permissions)';
-        } else if (error.message.includes('status: 409')) {
-            errorMessage += ' (Conflict - file was modified elsewhere)';
-        } else if (error.message.includes('status: 401')) {
+        } else if (httpStatus === 401) {
             errorMessage += ' (Authentication failed - check token)';
-        } else if (error.message.includes('status: 403')) {
+        } else if (httpStatus === 403) {
             errorMessage += ' (Access denied - check token permissions)';
-        } else if (error.message.includes('status: 404')) {
+        } else if (httpStatus === 404) {
             errorMessage += ' (File not found - check repository and path)';
-        } else {
+        } else if (httpStatus === 409) {
+            errorMessage += ' (Conflict - file was modified elsewhere)';
+        } else if (error.message) {
             errorMessage += ` (${error.message})`;
         }
         
@@ -284,8 +294,8 @@ function setupEventListeners() {
     listTextarea.addEventListener('blur', saveListTextarea);
     listTextarea.addEventListener('input', () => {
         // Debounce auto-save on input
-        clearTimeout(listTextarea.saveTimeout);
-        listTextarea.saveTimeout = setTimeout(() => saveListTextarea(), 1000);
+        clearTimeout(listTextareaSaveTimeout);
+        listTextareaSaveTimeout = setTimeout(() => saveListTextarea(), 1000);
     });
 
     // Add tab
