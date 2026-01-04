@@ -111,7 +111,7 @@ async function updateDataToGitHub(message = 'Update data') {
         // Update file - properly encode UTF-8 to base64
         const jsonString = JSON.stringify(appData, null, 2);
         const bytes = new TextEncoder().encode(jsonString);
-        const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+        const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
         const content = btoa(binString);
         
         const response = await fetch(
