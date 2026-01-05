@@ -9,10 +9,6 @@
       },
       "tasks": [
         {
-          "name": "test 44",
-          "completed": false
-        },
-        {
           "name": "Honden uitlate",
           "completed": false
         },
@@ -31,8 +27,7 @@
       "tasks": [
         {
           "name": "test33",
-          "completed": false,
-          "priority": true
+          "completed": false
         }
       ]
     }
