@@ -25,10 +25,6 @@
           "name": "Prep CGI client meetings",
           "completed": false,
           "priority": true
-        },
-        {
-          "name": "test 99",
-          "completed": true
         }
       ]
     }
