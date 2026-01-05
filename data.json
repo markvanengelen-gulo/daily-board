@@ -2,7 +2,8 @@
   "dateEntries": {
     "2026-01-05": {
       "disciplines": {
-        "0": true
+        "0": true,
+        "1": true
       },
       "tasks": []
     }
