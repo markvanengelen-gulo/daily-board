@@ -397,9 +397,16 @@ function loadDisciplines() {
     // Add dynamic tasks after fixed disciplines
     let tasks = dateEntry.tasks || [];
     
-    // Render tasks in their current order (no sorting, user can drag to reorder)
-    tasks.forEach((task, index) => {
-        const taskElement = createTaskElement(task, index);
+    // Sort tasks: priority (focused) tasks first, then others in their original order
+    // Create array of task objects with their original indices
+    const tasksWithIndices = tasks.map((task, index) => ({ task, originalIndex: index }));
+    
+    // Sort: priority tasks first, maintaining relative order within each group
+    tasksWithIndices.sort((a, b) => (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0));
+    
+    // Render tasks in sorted order
+    tasksWithIndices.forEach(({ task, originalIndex }) => {
+        const taskElement = createTaskElement(task, originalIndex);
         container.appendChild(taskElement);
     });
 }
@@ -469,8 +476,9 @@ function createTaskElement(task, index) {
     
     const priorityBtn = document.createElement('button');
     priorityBtn.className = 'priority-btn' + (task.priority ? ' active' : '');
-    priorityBtn.textContent = '⭐';
-    priorityBtn.title = task.priority ? 'Remove from top 3' : 'Add to top 3';
+    priorityBtn.innerHTML = '<span aria-hidden="true">🔴</span>';
+    priorityBtn.setAttribute('aria-label', task.priority ? 'Remove from focus' : 'Mark for focus');
+    priorityBtn.title = task.priority ? 'Remove from focus' : 'Mark for focus';
     priorityBtn.addEventListener('click', () => toggleTaskPriority(index));
 
     const deleteBtn = document.createElement('button');
