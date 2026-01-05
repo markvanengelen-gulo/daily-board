@@ -149,10 +149,21 @@ async function fetchDataFromGitHub() {
         const metaData = await metaResponse.json();
         currentSHA = metaData.sha;
         
+        // Validate API response includes content
+        if (!metaData.content) {
+            throw new Error('No content found in API response');
+        }
+        
         // Decode the base64 content from the API response
         // This avoids the caching issue with raw.githubusercontent.com
         const base64Content = metaData.content;
-        const decodedContent = atob(base64Content.replace(/\s/g, ''));
+        let decodedContent;
+        try {
+            decodedContent = atob(base64Content.replace(/\s/g, ''));
+        } catch (decodeError) {
+            throw new Error(`Failed to decode base64 content: ${decodeError.message}`);
+        }
+        
         const data = JSON.parse(decodedContent);
         
         // Ensure the data structure has all required fields
