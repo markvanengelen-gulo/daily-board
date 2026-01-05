@@ -805,15 +805,13 @@ let draggedTaskIndex = null;
 function handleDragStart(e) {
     draggedTaskElement = e.currentTarget;
     draggedTaskIndex = parseInt(draggedTaskElement.dataset.taskIndex);
-    e.currentTarget.style.opacity = '0.4';
+    e.currentTarget.classList.add('dragging');
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
 }
 
 function handleDragOver(e) {
-    if (e.preventDefault) {
-        e.preventDefault();
-    }
+    e.preventDefault();
     
     const targetElement = e.currentTarget;
     
@@ -826,16 +824,14 @@ function handleDragOver(e) {
     
     // Add visual feedback
     if (targetElement !== draggedTaskElement) {
-        targetElement.style.borderTop = '3px solid #667eea';
+        targetElement.classList.add('drag-over');
     }
     
     return false;
 }
 
 function handleDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
+    e.stopPropagation();
     
     const targetElement = e.currentTarget;
     
@@ -855,25 +851,28 @@ function handleDrop(e) {
         // Remove dragged task and insert at new position
         const draggedTask = tasks[draggedTaskIndex];
         tasks.splice(draggedTaskIndex, 1);
-        tasks.splice(targetTaskIndex, 0, draggedTask);
+        
+        // Adjust target index if dragging downward (target index was after dragged index)
+        const adjustedTargetIndex = targetTaskIndex > draggedTaskIndex ? targetTaskIndex - 1 : targetTaskIndex;
+        tasks.splice(adjustedTargetIndex, 0, draggedTask);
         
         saveDateEntry(dateKey, dateEntry);
         loadDisciplines();
     }
     
     // Remove visual feedback
-    targetElement.style.borderTop = '';
+    targetElement.classList.remove('drag-over');
     
     return false;
 }
 
 function handleDragEnd(e) {
-    e.currentTarget.style.opacity = '1';
+    e.currentTarget.classList.remove('dragging');
     
     // Remove all visual feedback
     const allTaskItems = document.querySelectorAll('.task-item');
     allTaskItems.forEach(item => {
-        item.style.borderTop = '';
+        item.classList.remove('drag-over');
     });
     
     draggedTaskElement = null;
