@@ -20,6 +20,10 @@
         {
           "name": "Call Len",
           "completed": false
+        },
+        {
+          "name": "Prep CGI client meetings",
+          "completed": false
         }
       ]
     }
