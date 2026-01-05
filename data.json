@@ -7,7 +7,12 @@
         "2": true,
         "3": true
       },
-      "tasks": []
+      "tasks": [
+        {
+          "name": "test 44",
+          "completed": false
+        }
+      ]
     }
   },
   "tabs": [
