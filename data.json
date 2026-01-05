@@ -11,6 +11,10 @@
         {
           "name": "test 44",
           "completed": false
+        },
+        {
+          "name": "Honden uitlate",
+          "completed": false
         }
       ]
     }
