@@ -10,7 +10,7 @@
       "tasks": [
         {
           "name": "Honden uitlaten",
-          "completed": false
+          "completed": true
         }
       ]
     },
