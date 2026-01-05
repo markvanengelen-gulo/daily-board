@@ -19,6 +19,10 @@
         {
           "name": "Honden uitlaten",
           "completed": false
+        },
+        {
+          "name": "test 22",
+          "completed": false
         }
       ]
     }
