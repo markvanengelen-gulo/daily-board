@@ -23,7 +23,8 @@
         },
         {
           "name": "Prep CGI client meetings",
-          "completed": false
+          "completed": false,
+          "priority": true
         }
       ]
     }
