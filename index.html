@@ -56,14 +56,24 @@
             <section class="disciplines-section">
                 <div class="section-header">
                     <h3>Daily Disciplines</h3>
-                    <button id="refreshBtn" class="refresh-btn" title="Refresh data from GitHub">🔄</button>
+                    <div class="button-group">
+                        <button id="updateBtn" class="update-btn" title="Save changes to GitHub immediately">💾 Update</button>
+                        <button id="refreshBtn" class="refresh-btn" title="Refresh data from GitHub">🔄</button>
+                    </div>
                 </div>
                 <div class="disciplines-list" id="disciplinesList">
-                    <!-- Fixed disciplines will be added here by JS -->
+                    <!-- Active disciplines will be added here by JS -->
+                </div>
+                <div id="completedDisciplinesSection" class="completed-section" style="display: none;">
+                    <h4 class="completed-header">Completed Disciplines</h4>
+                    <div class="disciplines-list" id="completedDisciplinesList">
+                        <!-- Completed disciplines will be added here by JS -->
+                    </div>
                 </div>
             </section>
 
             <section class="tasks-section">
+                <h3>Tasks</h3>
                 <div class="add-task-container">
                     <input 
                         type="text" 
@@ -72,6 +82,15 @@
                         class="task-input"
                     >
                     <button id="addTaskBtn" class="add-btn">Add Task</button>
+                </div>
+                <div class="tasks-list" id="tasksList">
+                    <!-- Active tasks will be added here by JS -->
+                </div>
+                <div id="completedTasksSection" class="completed-section" style="display: none;">
+                    <h4 class="completed-header">Completed Tasks</h4>
+                    <div class="tasks-list" id="completedTasksList">
+                        <!-- Completed tasks will be added here by JS -->
+                    </div>
                 </div>
             </section>
 
