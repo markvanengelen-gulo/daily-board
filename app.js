@@ -297,6 +297,9 @@ function setupEventListeners() {
     document.getElementById('prevDay').addEventListener('click', () => changeDate(-1));
     document.getElementById('nextDay').addEventListener('click', () => changeDate(1));
 
+    // Refresh button
+    document.getElementById('refreshBtn').addEventListener('click', refreshData);
+
     // Dynamic tasks
     document.getElementById('addTaskBtn').addEventListener('click', addTask);
     document.getElementById('newTaskInput').addEventListener('keypress', (e) => {
@@ -397,12 +400,22 @@ function loadDisciplines() {
     // Add dynamic tasks after fixed disciplines
     let tasks = dateEntry.tasks || [];
     
-    // Sort tasks: priority (focused) tasks first, then others in their original order
-    // Create array of task objects with their original indices
+    // Sort tasks: 
+    // 1. Uncompleted priority tasks first
+    // 2. Then uncompleted regular tasks
+    // 3. Then completed priority tasks
+    // 4. Finally completed regular tasks
     const tasksWithIndices = tasks.map((task, index) => ({ task, originalIndex: index }));
     
-    // Sort: priority tasks first, maintaining relative order within each group
-    tasksWithIndices.sort((a, b) => (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0));
+    // Sort: first by completion status (uncompleted first), then by priority (priority first)
+    tasksWithIndices.sort((a, b) => {
+        // First sort by completion status
+        if (a.task.completed !== b.task.completed) {
+            return a.task.completed ? 1 : -1;
+        }
+        // Then sort by priority (within same completion status)
+        return (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0);
+    });
     
     // Render tasks in sorted order
     tasksWithIndices.forEach(({ task, originalIndex }) => {
@@ -483,7 +496,9 @@ function createTaskElement(task, index) {
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
-    deleteBtn.textContent = 'Delete';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.setAttribute('aria-label', 'Delete task');
+    deleteBtn.title = 'Delete task';
     deleteBtn.addEventListener('click', () => deleteTask(index));
 
     rightDiv.appendChild(priorityBtn);
@@ -730,6 +745,28 @@ function saveListTextarea() {
 }
 
 // GitHub Token Configuration Functions
+async function refreshData() {
+    try {
+        // Write current data to GitHub first
+        await updateDataToGitHub('Manual refresh - save current state');
+        
+        // Then fetch the latest data from GitHub
+        await fetchDataFromGitHub();
+        
+        // Update UI with the latest data
+        updateDateDisplay();
+        loadDisciplines();
+        loadTabs();
+        loadCurrentTab();
+        
+        // Show success message
+        showMessage('Data refreshed successfully!', 'success');
+    } catch (error) {
+        console.error('Error refreshing data:', error);
+        showError('Failed to refresh data. Please try again.');
+    }
+}
+
 function updateTokenStatus() {
     const statusText = document.getElementById('tokenStatusText');
     const tokenInput = document.getElementById('githubTokenInput');
