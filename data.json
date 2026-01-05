@@ -65,6 +65,10 @@
   },
   "tabs": [
     {
+      "id": "tab_1767633005477",
+      "name": "Trives"
+    },
+    {
       "id": "tab_default",
       "name": "Property"
     },
@@ -87,10 +91,6 @@
     {
       "id": "tab_1767632997599",
       "name": "SEA"
-    },
-    {
-      "id": "tab_1767633005477",
-      "name": "Trives"
     }
   ],
   "listItems": {
