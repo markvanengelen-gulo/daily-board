@@ -28,7 +28,7 @@
         },
         {
           "name": "test 99",
-          "completed": false
+          "completed": true
         },
         {
           "name": "test 11",
