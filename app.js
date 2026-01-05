@@ -279,6 +279,7 @@ async function initializeApp() {
     
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
     loadTabs();
     loadCurrentTab();
     
@@ -288,6 +289,7 @@ async function initializeApp() {
     // Only refresh UI if data changed
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
     loadTabs();
     loadCurrentTab();
 }
@@ -296,6 +298,9 @@ function setupEventListeners() {
     // Date navigation
     document.getElementById('prevDay').addEventListener('click', () => changeDate(-1));
     document.getElementById('nextDay').addEventListener('click', () => changeDate(1));
+
+    // Update button - save immediately
+    document.getElementById('updateBtn').addEventListener('click', saveDataImmediately);
 
     // Refresh button
     document.getElementById('refreshBtn').addEventListener('click', refreshData);
@@ -331,6 +336,7 @@ function changeDate(days) {
     currentDate.setDate(currentDate.getDate() + days);
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
 }
 
 function updateDateDisplay() {
@@ -384,42 +390,44 @@ function saveListItems(tabId, items) {
 
 // Disciplines management
 function loadDisciplines() {
-    const container = document.getElementById('disciplinesList');
-    container.innerHTML = '';
+    const activeContainer = document.getElementById('disciplinesList');
+    const completedContainer = document.getElementById('completedDisciplinesList');
+    const completedSection = document.getElementById('completedDisciplinesSection');
+    
+    activeContainer.innerHTML = '';
+    completedContainer.innerHTML = '';
 
     const dateKey = getDateKey();
     const dateEntry = getDateEntry(dateKey);
     const savedDisciplines = dateEntry.disciplines || {};
 
+    // Separate active and completed disciplines
+    const activeDisciplines = [];
+    const completedDisciplines = [];
+
     FIXED_DISCIPLINES.forEach((discipline, index) => {
         const isCompleted = savedDisciplines[index] || false;
-        const disciplineElement = createDisciplineElement(discipline, index, isCompleted);
-        container.appendChild(disciplineElement);
-    });
-    
-    // Add dynamic tasks after fixed disciplines
-    let tasks = dateEntry.tasks || [];
-    
-    // Sort tasks to keep uncompleted tasks at top and completed tasks at bottom
-    // Within each group (completed/uncompleted), priority tasks appear first
-    const tasksWithIndices = tasks.map((task, index) => ({ task, originalIndex: index }));
-    
-    // Sort by completion status first (uncompleted < completed),
-    // then by priority (priority > non-priority) within each completion group
-    tasksWithIndices.sort((a, b) => {
-        // First sort by completion status: uncompleted tasks come first
-        if (a.task.completed !== b.task.completed) {
-            return a.task.completed ? 1 : -1; // -1 = a before b, 1 = b before a
+        if (isCompleted) {
+            completedDisciplines.push({ discipline, index, isCompleted });
+        } else {
+            activeDisciplines.push({ discipline, index, isCompleted });
         }
-        // Then sort by priority within same completion status: priority tasks first
-        return (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0);
     });
-    
-    // Render tasks in sorted order
-    tasksWithIndices.forEach(({ task, originalIndex }) => {
-        const taskElement = createTaskElement(task, originalIndex);
-        container.appendChild(taskElement);
+
+    // Render active disciplines
+    activeDisciplines.forEach(({ discipline, index, isCompleted }) => {
+        const disciplineElement = createDisciplineElement(discipline, index, isCompleted);
+        activeContainer.appendChild(disciplineElement);
     });
+
+    // Render completed disciplines
+    completedDisciplines.forEach(({ discipline, index, isCompleted }) => {
+        const disciplineElement = createDisciplineElement(discipline, index, isCompleted);
+        completedContainer.appendChild(disciplineElement);
+    });
+
+    // Show/hide completed section
+    completedSection.style.display = completedDisciplines.length > 0 ? 'block' : 'none';
 }
 
 function createDisciplineElement(name, index, isCompleted) {
@@ -441,7 +449,29 @@ function createDisciplineElement(name, index, isCompleted) {
 
     leftDiv.appendChild(checkbox);
     leftDiv.appendChild(label);
+    
+    // Add action buttons for disciplines
+    const rightDiv = document.createElement('div');
+    rightDiv.className = 'task-actions';
+    
+    const priorityBtn = document.createElement('button');
+    priorityBtn.className = 'priority-btn';
+    priorityBtn.innerHTML = '<span aria-hidden="true">🔴</span>';
+    priorityBtn.setAttribute('aria-label', 'Mark for focus');
+    priorityBtn.title = 'Click to mark this discipline for focus';
+    priorityBtn.addEventListener('click', () => toggleDisciplinePriority(index));
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-btn';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.setAttribute('aria-label', 'Delete discipline');
+    deleteBtn.title = 'Remove discipline for today';
+    deleteBtn.addEventListener('click', () => deleteDiscipline(index));
+
+    rightDiv.appendChild(priorityBtn);
+    rightDiv.appendChild(deleteBtn);
     div.appendChild(leftDiv);
+    div.appendChild(rightDiv);
 
     return div;
 }
@@ -454,10 +484,66 @@ function toggleDiscipline(index, isCompleted) {
     loadDisciplines();
 }
 
+function toggleDisciplinePriority(index) {
+    // Show an informational message about the discipline focus feature
+    showMessage('🔴 Focus marker clicked! Use this to visually identify disciplines you want to prioritize today.', 'success');
+}
+
+function deleteDiscipline(index) {
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    // Remove the discipline completion status for today
+    delete dateEntry.disciplines[index];
+    saveDateEntry(dateKey, dateEntry);
+    loadDisciplines();
+}
+    loadDisciplines();
+}
+
 // Tasks management
 function loadTasks() {
-    // Tasks are now displayed in the disciplines section
-    // This function is kept for compatibility but doesn't render anything
+    const activeContainer = document.getElementById('tasksList');
+    const completedContainer = document.getElementById('completedTasksList');
+    const completedSection = document.getElementById('completedTasksSection');
+    
+    activeContainer.innerHTML = '';
+    completedContainer.innerHTML = '';
+
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    let tasks = dateEntry.tasks || [];
+    
+    // Separate active and completed tasks
+    const activeTasks = [];
+    const completedTasks = [];
+    
+    tasks.forEach((task, index) => {
+        if (task.completed) {
+            completedTasks.push({ task, index });
+        } else {
+            activeTasks.push({ task, index });
+        }
+    });
+    
+    // Sort active tasks by priority (priority tasks first)
+    activeTasks.sort((a, b) => {
+        return (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0);
+    });
+    
+    // Render active tasks
+    activeTasks.forEach(({ task, index }) => {
+        const taskElement = createTaskElement(task, index);
+        activeContainer.appendChild(taskElement);
+    });
+    
+    // Render completed tasks
+    completedTasks.forEach(({ task, index }) => {
+        const taskElement = createTaskElement(task, index);
+        completedContainer.appendChild(taskElement);
+    });
+    
+    // Show/hide completed section
+    completedSection.style.display = completedTasks.length > 0 ? 'block' : 'none';
 }
 
 function createTaskElement(task, index) {
@@ -525,7 +611,7 @@ function addTask() {
     saveDateEntry(dateKey, dateEntry);
 
     input.value = '';
-    loadDisciplines();
+    loadTasks();
 }
 
 function toggleTask(index, isCompleted) {
@@ -534,7 +620,7 @@ function toggleTask(index, isCompleted) {
     if (dateEntry.tasks[index]) {
         dateEntry.tasks[index].completed = isCompleted;
         saveDateEntry(dateKey, dateEntry);
-        loadDisciplines();
+        loadTasks();
     }
 }
 
@@ -543,7 +629,7 @@ function deleteTask(index) {
     const dateEntry = getDateEntry(dateKey);
     dateEntry.tasks.splice(index, 1);
     saveDateEntry(dateKey, dateEntry);
-    loadDisciplines();
+    loadTasks();
 }
 
 function toggleTaskPriority(index) {
@@ -565,7 +651,18 @@ function toggleTaskPriority(index) {
     // Toggle priority
     task.priority = !task.priority;
     saveDateEntry(dateKey, dateEntry);
-    loadDisciplines();
+    loadTasks();
+}
+
+// Save data immediately to GitHub
+async function saveDataImmediately() {
+    try {
+        await updateDataToGitHub('Manual update - save immediately');
+        showMessage('Data saved successfully!', 'success');
+    } catch (error) {
+        console.error('Error saving data:', error);
+        showError('Failed to save data. Please try again.');
+    }
 }
 
 // Tabs/Lists management
@@ -758,6 +855,7 @@ async function refreshData() {
         // Update UI with the latest data
         updateDateDisplay();
         loadDisciplines();
+        loadTasks();
         loadTabs();
         loadCurrentTab();
         
@@ -906,7 +1004,7 @@ function handleDrop(e) {
         tasks.splice(adjustedTargetIndex, 0, draggedTask);
         
         saveDateEntry(dateKey, dateEntry);
-        loadDisciplines();
+        loadTasks();
     }
     
     // Remove visual feedback
