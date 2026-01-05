@@ -480,7 +480,8 @@ function createTaskElement(task, index) {
     
     const priorityBtn = document.createElement('button');
     priorityBtn.className = 'priority-btn' + (task.priority ? ' active' : '');
-    priorityBtn.textContent = '🔴';
+    priorityBtn.innerHTML = '<span aria-hidden="true">🔴</span>';
+    priorityBtn.setAttribute('aria-label', task.priority ? 'Remove from focus' : 'Mark for focus');
     priorityBtn.title = task.priority ? 'Remove from focus' : 'Mark for focus';
     priorityBtn.addEventListener('click', () => toggleTaskPriority(index));
 

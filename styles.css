@@ -321,9 +321,8 @@ section h3 {
 
 .priority-task {
     background: linear-gradient(135deg, var(--priority-bg-light) 0%, #ffebee 100%);
-    border-left: 4px solid var(--priority-border);
+    border: 3px solid var(--priority-border);
     box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
-    outline: 2px solid var(--priority-border);
 }
 
 .priority-task:hover {
