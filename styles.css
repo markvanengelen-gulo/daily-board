@@ -1,8 +1,8 @@
 :root {
-    --priority-bg-light: #fff9c4;
-    --priority-bg: #fff59d;
-    --priority-border: #fbc02d;
-    --priority-text: #f57f17;
+    --priority-bg-light: #ffebee;
+    --priority-bg: #ffcdd2;
+    --priority-border: #f44336;
+    --priority-text: #c62828;
 }
 
 * {
@@ -320,14 +320,15 @@ section h3 {
 }
 
 .priority-task {
-    background: linear-gradient(135deg, var(--priority-bg-light) 0%, #fffde7 100%);
+    background: linear-gradient(135deg, var(--priority-bg-light) 0%, #ffebee 100%);
     border-left: 4px solid var(--priority-border);
-    box-shadow: 0 4px 8px rgba(251, 192, 45, 0.2);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.2);
+    outline: 2px solid var(--priority-border);
 }
 
 .priority-task:hover {
     transform: translateX(5px);
-    box-shadow: 0 6px 12px rgba(251, 192, 45, 0.3);
+    box-shadow: 0 6px 12px rgba(244, 67, 54, 0.3);
 }
 
 
