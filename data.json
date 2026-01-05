@@ -33,6 +33,10 @@
         {
           "name": "Chamber emails",
           "completed": false
+        },
+        {
+          "name": "Kippen sneeuw scheppen",
+          "completed": false
         }
       ]
     },
