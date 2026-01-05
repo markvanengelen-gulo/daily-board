@@ -256,6 +256,27 @@ section h3 {
     transform: scale(0.95);
 }
 
+.download-btn {
+    padding: 8px 16px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s;
+    line-height: 1;
+}
+
+.download-btn:hover {
+    background: #5568d3;
+    transform: scale(1.05);
+}
+
+.download-btn:active {
+    transform: scale(0.95);
+}
+
 .refresh-btn {
     padding: 8px 12px;
     background: #667eea;
@@ -500,7 +521,7 @@ section h3 {
     border: 2px solid #667eea;
     color: #667eea;
     border-radius: 8px;
-    cursor: pointer;
+    cursor: move;
     font-size: 0.95rem;
     transition: all 0.3s;
     display: flex;
@@ -515,6 +536,14 @@ section h3 {
 .tab.active {
     background: #667eea;
     color: white;
+}
+
+.tab.dragging {
+    opacity: 0.4;
+}
+
+.tab.drag-over {
+    border-left: 3px solid #51cf66;
 }
 
 .tab-name {

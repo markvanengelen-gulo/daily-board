@@ -375,9 +375,8 @@ function loadFromLocalStorageFallback() {
     const tabsData = localStorage.getItem('dailyBoard_global_tabs');
     if (tabsData) {
         data.tabs = JSON.parse(tabsData);
-    } else {
-        data.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
     }
+    // Don't create default tabs here - let initialization handle it
     
     return data;
 }
@@ -407,16 +406,19 @@ async function initializeApp() {
     // Try to load from localStorage backup first for immediate display
     loadFromLocalStorage();
     
-    updateDateDisplay();
-    loadDisciplines();
-    loadTasks();
-    loadTabs();
-    loadCurrentTab();
-    
-    // Then fetch from GitHub in the background
+    // Then fetch from GitHub - this should overwrite localStorage data if available
     await fetchDataFromGitHub();
     
-    // Only refresh UI if data changed
+    // Ensure we have at least one tab after loading from all sources
+    if (!appData.tabs || appData.tabs.length === 0) {
+        appData.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
+        // Save the default tab to GitHub if we have a token
+        if (GITHUB_CONFIG.token) {
+            await updateDataToGitHub('Initialize default tab');
+        }
+    }
+    
+    // Now refresh UI with the loaded/initialized data
     updateDateDisplay();
     loadDisciplines();
     loadTasks();
@@ -452,6 +454,9 @@ function setupEventListeners() {
 
     // Add tab
     document.getElementById('addTabBtn').addEventListener('click', addTab);
+    
+    // Download button
+    document.getElementById('downloadBtn').addEventListener('click', downloadData);
     
     // GitHub token configuration
     document.getElementById('saveTokenBtn').addEventListener('click', saveGitHubToken);
@@ -495,10 +500,9 @@ function saveDateEntry(dateKey, entry) {
 }
 
 function getTabs() {
-    if (!appData.tabs || appData.tabs.length === 0) {
-        appData.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
-    }
-    return appData.tabs;
+    // Don't create default tabs here - this causes sync issues
+    // Default tabs should only be created during initialization if needed
+    return appData.tabs || [];
 }
 
 function saveTabs(tabs) {
@@ -814,6 +818,8 @@ function loadTabs() {
 function createTabElement(tab) {
     const button = document.createElement('button');
     button.className = 'tab' + (tab.id === currentTabId ? ' active' : '');
+    button.draggable = true;
+    button.dataset.tabId = tab.id;
     
     const nameSpan = document.createElement('span');
     nameSpan.textContent = tab.name;
@@ -846,6 +852,12 @@ function createTabElement(tab) {
 
     button.appendChild(deleteBtn);
     button.addEventListener('click', () => switchTab(tab.id));
+    
+    // Add drag and drop event listeners
+    button.addEventListener('dragstart', handleTabDragStart);
+    button.addEventListener('dragover', handleTabDragOver);
+    button.addEventListener('drop', handleTabDrop);
+    button.addEventListener('dragend', handleTabDragEnd);
 
     return button;
 }
@@ -965,6 +977,40 @@ function saveListTextarea() {
     const textarea = document.getElementById('listTextarea');
     const content = textarea.value;
     saveListItems(currentTabId, content);
+}
+
+// Download data as JSON file
+function downloadData() {
+    try {
+        // Create a formatted JSON string of all app data
+        const dataStr = JSON.stringify(appData, null, 2);
+        
+        // Create a blob from the JSON string
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        
+        // Create a temporary download link
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Use current date for filename
+        const now = new Date();
+        const timestamp = now.toISOString().replace(/[-:]/g, '').split('.')[0];
+        link.download = `daily-board-export-${timestamp}.json`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        showMessage('Data exported successfully!', 'success');
+    } catch (error) {
+        console.error('Error downloading data:', error);
+        showError('Failed to download data. Please try again.');
+    }
 }
 
 // GitHub Token Configuration Functions
@@ -1152,4 +1198,93 @@ function handleDragEnd(e) {
     
     draggedTaskElement = null;
     draggedTaskIndex = null;
+}
+
+// Drag and Drop functionality for tabs/lists
+let draggedTabElement = null;
+let draggedTabId = null;
+
+function isTabElement(element) {
+    return element.classList.contains('tab');
+}
+
+function handleTabDragStart(e) {
+    draggedTabElement = e.currentTarget;
+    draggedTabId = draggedTabElement.dataset.tabId;
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleTabDragOver(e) {
+    e.preventDefault();
+    
+    const targetElement = e.currentTarget;
+    
+    // Only allow dropping on tab elements
+    if (!isTabElement(targetElement)) {
+        return false;
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Add visual feedback
+    if (targetElement !== draggedTabElement) {
+        targetElement.classList.add('drag-over');
+    }
+    
+    return false;
+}
+
+function handleTabDrop(e) {
+    e.stopPropagation();
+    
+    const targetElement = e.currentTarget;
+    
+    // Only allow dropping on tab elements
+    if (!isTabElement(targetElement)) {
+        return false;
+    }
+    
+    if (draggedTabElement !== targetElement) {
+        const targetTabId = targetElement.dataset.tabId;
+        
+        // Reorder tabs in data
+        let tabs = getTabs();
+        
+        // Find indices
+        const draggedIndex = tabs.findIndex(tab => tab.id === draggedTabId);
+        const targetIndex = tabs.findIndex(tab => tab.id === targetTabId);
+        
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            // Remove dragged tab and insert at new position
+            const draggedTab = tabs[draggedIndex];
+            tabs.splice(draggedIndex, 1);
+            
+            // Adjust target index if dragging downward
+            const adjustedTargetIndex = targetIndex > draggedIndex ? targetIndex - 1 : targetIndex;
+            tabs.splice(adjustedTargetIndex, 0, draggedTab);
+            
+            saveTabs(tabs);
+            loadTabs();
+        }
+    }
+    
+    // Remove visual feedback
+    targetElement.classList.remove('drag-over');
+    
+    return false;
+}
+
+function handleTabDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    
+    // Remove all visual feedback
+    const allTabs = document.querySelectorAll('.tab');
+    allTabs.forEach(tab => {
+        tab.classList.remove('drag-over');
+    });
+    
+    draggedTabElement = null;
+    draggedTabId = null;
 }
