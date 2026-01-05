@@ -19,9 +19,14 @@
     {
       "id": "tab_default",
       "name": "Property"
+    },
+    {
+      "id": "tab_1767584725303",
+      "name": "List 2"
     }
   ],
   "listItems": {
-    "tab_default": ""
+    "tab_default": "",
+    "tab_1767584725303": ""
   }
 }
