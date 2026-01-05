@@ -802,6 +802,10 @@ function clearGitHubToken() {
 let draggedTaskElement = null;
 let draggedTaskIndex = null;
 
+function isTaskItem(element) {
+    return element.classList.contains('task-item');
+}
+
 function handleDragStart(e) {
     draggedTaskElement = e.currentTarget;
     draggedTaskIndex = parseInt(draggedTaskElement.dataset.taskIndex);
@@ -816,7 +820,7 @@ function handleDragOver(e) {
     const targetElement = e.currentTarget;
     
     // Only allow dropping on task items
-    if (!targetElement.classList.contains('task-item')) {
+    if (!isTaskItem(targetElement)) {
         return false;
     }
     
@@ -836,7 +840,7 @@ function handleDrop(e) {
     const targetElement = e.currentTarget;
     
     // Only allow dropping on task items
-    if (!targetElement.classList.contains('task-item')) {
+    if (!isTaskItem(targetElement)) {
         return false;
     }
     
@@ -852,7 +856,8 @@ function handleDrop(e) {
         const draggedTask = tasks[draggedTaskIndex];
         tasks.splice(draggedTaskIndex, 1);
         
-        // Adjust target index if dragging downward (target index was after dragged index)
+        // When dragging downward, we need to adjust the target index by -1
+        // because removing the dragged item shifts all subsequent indices down by 1
         const adjustedTargetIndex = targetTaskIndex > draggedTaskIndex ? targetTaskIndex - 1 : targetTaskIndex;
         tasks.splice(adjustedTargetIndex, 0, draggedTask);
         
