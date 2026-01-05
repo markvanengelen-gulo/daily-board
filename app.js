@@ -450,15 +450,15 @@ function createDisciplineElement(name, index, isCompleted) {
     leftDiv.appendChild(checkbox);
     leftDiv.appendChild(label);
     
-    // Add action buttons for disciplines (like tasks)
+    // Add action buttons for disciplines
     const rightDiv = document.createElement('div');
     rightDiv.className = 'task-actions';
     
     const priorityBtn = document.createElement('button');
-    priorityBtn.className = 'priority-btn' + (false ? ' active' : ''); // Disciplines don't have priority saved yet
+    priorityBtn.className = 'priority-btn';
     priorityBtn.innerHTML = '<span aria-hidden="true">🔴</span>';
     priorityBtn.setAttribute('aria-label', 'Mark for focus');
-    priorityBtn.title = 'Mark for focus';
+    priorityBtn.title = 'Click to mark this discipline for focus';
     priorityBtn.addEventListener('click', () => toggleDisciplinePriority(index));
 
     const deleteBtn = document.createElement('button');
@@ -485,8 +485,8 @@ function toggleDiscipline(index, isCompleted) {
 }
 
 function toggleDisciplinePriority(index) {
-    // For now, just show a message - this could be expanded if needed
-    showMessage('Priority marking for disciplines is available. Use the red circle to focus on specific disciplines.', 'success');
+    // Show an informational message about the discipline focus feature
+    showMessage('🔴 Focus marker clicked! Use this to visually identify disciplines you want to prioritize today.', 'success');
 }
 
 function deleteDiscipline(index) {
@@ -495,6 +495,8 @@ function deleteDiscipline(index) {
     // Remove the discipline completion status for today
     delete dateEntry.disciplines[index];
     saveDateEntry(dateKey, dateEntry);
+    loadDisciplines();
+}
     loadDisciplines();
 }
 
