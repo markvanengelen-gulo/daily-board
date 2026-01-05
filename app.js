@@ -119,11 +119,34 @@ async function createBackup() {
     }
 }
 
+// Data structure initialization helper
+function initializeDataStructure(data) {
+    if (!data) {
+        data = {};
+    }
+    if (!data.listItems) {
+        data.listItems = {};
+    }
+    if (!data.tabs) {
+        data.tabs = [];
+    }
+    if (!data.dateEntries) {
+        data.dateEntries = {};
+    }
+    return data;
+}
+
+/**
+ * Fetch data from GitHub repository
+ * Uses the GitHub Contents API to get the file content directly,
+ * which avoids the caching issue that occurs with raw.githubusercontent.com
+ * (raw URLs can cache for up to 5 minutes, causing sync delays between devices)
+ */
 async function fetchDataFromGitHub() {
     try {
         showSyncIndicator('loading');
         
-        // Fetch file metadata to get SHA
+        // Fetch file metadata and content in one API call
         const metaResponse = await fetch(
             `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
             {
@@ -143,16 +166,31 @@ async function fetchDataFromGitHub() {
         const metaData = await metaResponse.json();
         currentSHA = metaData.sha;
         
-        // Fetch actual data content
-        const dataResponse = await fetch(
-            `https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.dataPath}`
-        );
-        
-        if (!dataResponse.ok) {
-            throw new Error(`Failed to fetch data: ${dataResponse.status}`);
+        // Validate API response includes content
+        if (!metaData.content) {
+            throw new Error('No content found in API response');
         }
         
-        const data = await dataResponse.json();
+        // Decode the base64 content from the API response
+        // This avoids the caching issue with raw.githubusercontent.com
+        // GitHub API returns base64 with newlines; we must strip them before decoding
+        let decodedContent;
+        try {
+            decodedContent = atob(metaData.content.replace(/\s/g, ''));
+        } catch (decodeError) {
+            throw new Error(`Failed to decode base64 content: ${decodeError.message}`);
+        }
+        
+        let data;
+        try {
+            data = JSON.parse(decodedContent);
+        } catch (parseError) {
+            throw new Error(`Failed to parse JSON content: ${parseError.message}`);
+        }
+        
+        // Ensure the data structure has all required fields
+        data = initializeDataStructure(data);
+        
         appData = data;
         
         hideSyncIndicator();
@@ -365,20 +403,21 @@ function showError(message) {
 
 // Local storage fallback functions
 function loadFromLocalStorageFallback() {
-    const data = {
-        dateEntries: {},
-        tabs: [],
-        listItems: {}
-    };
+    let data = {};
     
     // Try to load existing localStorage data
     const tabsData = localStorage.getItem('dailyBoard_global_tabs');
     if (tabsData) {
-        data.tabs = JSON.parse(tabsData);
+        try {
+            data.tabs = JSON.parse(tabsData);
+        } catch (e) {
+            console.error('Failed to parse localStorage tabs data:', e);
+        }
     }
     // Don't create default tabs here - let initialization handle it
     
-    return data;
+    // Ensure all required fields are initialized
+    return initializeDataStructure(data);
 }
 
 function saveToLocalStorage() {
