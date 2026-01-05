@@ -856,13 +856,16 @@ function shiftTaskDate(index, direction) {
     // Get or create target date entry
     const targetDateEntry = getDateEntry(targetDateKey);
     
-    // Move task to target date
+    // Move task to target date and remove from source date
     targetDateEntry.tasks.push({ ...task });
-    saveDateEntry(targetDateKey, targetDateEntry);
-    
-    // Remove task from source date
     sourceDateEntry.tasks.splice(index, 1);
-    saveDateEntry(sourceDateKey, sourceDateEntry);
+    
+    // Update both date entries in appData
+    appData.dateEntries[targetDateKey] = targetDateEntry;
+    appData.dateEntries[sourceDateKey] = sourceDateEntry;
+    
+    // Save to GitHub once with both changes
+    updateDataToGitHub('Move task between dates');
     
     // Reload tasks for current view
     loadTasks();
