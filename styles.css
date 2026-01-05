@@ -426,6 +426,26 @@ section h3 {
     box-shadow: 0 6px 12px rgba(244, 67, 54, 0.3);
 }
 
+.date-shift-btn {
+    padding: 4px 8px;
+    background: #f5f5f5;
+    color: #667eea;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1;
+    transition: all 0.3s;
+}
+
+.date-shift-btn:hover {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+    transform: scale(1.1);
+}
+
 
 .delete-btn {
     padding: 4px 8px;
