@@ -9,10 +9,6 @@
       },
       "tasks": [
         {
-          "name": "Honden uitlate",
-          "completed": false
-        },
-        {
           "name": "Honden uitlaten",
           "completed": false
         },
