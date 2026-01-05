@@ -16,7 +16,12 @@
     },
     "2026-01-06": {
       "disciplines": {},
-      "tasks": []
+      "tasks": [
+        {
+          "name": "Call Len",
+          "completed": false
+        }
+      ]
     }
   },
   "tabs": [
