@@ -1,10 +1,19 @@
 {
-  "dateEntries": {},
+  "dateEntries": {
+    "2026-01-05": {
+      "disciplines": {
+        "0": true
+      },
+      "tasks": []
+    }
+  },
   "tabs": [
     {
       "id": "tab_default",
       "name": "My List"
     }
   ],
-  "listItems": {}
+  "listItems": {
+    "tab_default": ""
+  }
 }
