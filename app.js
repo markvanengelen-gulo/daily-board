@@ -400,18 +400,9 @@ function loadDisciplines() {
     // Add dynamic tasks after fixed disciplines
     let tasks = dateEntry.tasks || [];
     
-    // Sort tasks: priority tasks first, then by original order
-    const sortedTasks = [...tasks].map((task, origIndex) => ({ task, origIndex }));
-    sortedTasks.sort((a, b) => {
-        // Priority tasks come first
-        if (a.task.priority && !b.task.priority) return -1;
-        if (!a.task.priority && b.task.priority) return 1;
-        // Keep original order for tasks with same priority status
-        return a.origIndex - b.origIndex;
-    });
-
-    sortedTasks.forEach(({ task, origIndex }) => {
-        const taskElement = createTaskElement(task, origIndex);
+    // Render tasks in their current order (no sorting, user can drag to reorder)
+    tasks.forEach((task, index) => {
+        const taskElement = createTaskElement(task, index);
         container.appendChild(taskElement);
     });
 }
