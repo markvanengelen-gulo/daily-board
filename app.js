@@ -279,6 +279,7 @@ async function initializeApp() {
     
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
     loadTabs();
     loadCurrentTab();
     
@@ -288,6 +289,7 @@ async function initializeApp() {
     // Only refresh UI if data changed
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
     loadTabs();
     loadCurrentTab();
 }
@@ -334,6 +336,7 @@ function changeDate(days) {
     currentDate.setDate(currentDate.getDate() + days);
     updateDateDisplay();
     loadDisciplines();
+    loadTasks();
 }
 
 function updateDateDisplay() {
@@ -425,9 +428,6 @@ function loadDisciplines() {
 
     // Show/hide completed section
     completedSection.style.display = completedDisciplines.length > 0 ? 'block' : 'none';
-    
-    // Load tasks (now in separate function)
-    loadTasks();
 }
 
 function createDisciplineElement(name, index, isCompleted) {
@@ -609,7 +609,7 @@ function addTask() {
     saveDateEntry(dateKey, dateEntry);
 
     input.value = '';
-    loadDisciplines();
+    loadTasks();
 }
 
 function toggleTask(index, isCompleted) {
@@ -618,7 +618,7 @@ function toggleTask(index, isCompleted) {
     if (dateEntry.tasks[index]) {
         dateEntry.tasks[index].completed = isCompleted;
         saveDateEntry(dateKey, dateEntry);
-        loadDisciplines();
+        loadTasks();
     }
 }
 
@@ -627,7 +627,7 @@ function deleteTask(index) {
     const dateEntry = getDateEntry(dateKey);
     dateEntry.tasks.splice(index, 1);
     saveDateEntry(dateKey, dateEntry);
-    loadDisciplines();
+    loadTasks();
 }
 
 function toggleTaskPriority(index) {
@@ -649,7 +649,7 @@ function toggleTaskPriority(index) {
     // Toggle priority
     task.priority = !task.priority;
     saveDateEntry(dateKey, dateEntry);
-    loadDisciplines();
+    loadTasks();
 }
 
 // Save data immediately to GitHub
@@ -853,6 +853,7 @@ async function refreshData() {
         // Update UI with the latest data
         updateDateDisplay();
         loadDisciplines();
+        loadTasks();
         loadTabs();
         loadCurrentTab();
         
@@ -913,6 +914,7 @@ function saveGitHubToken() {
     fetchDataFromGitHub().then(() => {
         updateDateDisplay();
         loadDisciplines();
+        loadTasks();
         loadTabs();
         loadCurrentTab();
     });
@@ -1000,7 +1002,7 @@ function handleDrop(e) {
         tasks.splice(adjustedTargetIndex, 0, draggedTask);
         
         saveDateEntry(dateKey, dateEntry);
-        loadDisciplines();
+        loadTasks();
     }
     
     // Remove visual feedback
