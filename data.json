@@ -19,6 +19,10 @@
         {
           "name": "Prep WCB client meeting",
           "completed": false
+        },
+        {
+          "name": "Prep eCO assessment review",
+          "completed": false
         }
       ]
     },
