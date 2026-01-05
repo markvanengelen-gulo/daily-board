@@ -24,7 +24,7 @@
         {
           "name": "Prep eCO assessment review",
           "completed": false,
-          "priority": true
+          "priority": false
         },
         {
           "name": "Afwassen",
