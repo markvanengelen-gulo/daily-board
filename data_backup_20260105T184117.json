@@ -1,0 +1,105 @@
+{
+  "dateEntries": {
+    "2026-01-05": {
+      "disciplines": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "tasks": [
+        {
+          "name": "AGLC Databricks prep",
+          "completed": false
+        },
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Call Alex - Wifi extender",
+          "completed": false
+        },
+        {
+          "name": "Prep eCO assessment review",
+          "completed": false,
+          "priority": true
+        },
+        {
+          "name": "Afwassen",
+          "completed": false
+        },
+        {
+          "name": "Kerst spullen opruimen",
+          "completed": false
+        },
+        {
+          "name": "Chamber emails",
+          "completed": false
+        },
+        {
+          "name": "Kippen sneeuw scheppen",
+          "completed": false
+        },
+        {
+          "name": "Tractor sneeuw",
+          "completed": false
+        }
+      ]
+    },
+    "2026-01-06": {
+      "disciplines": {},
+      "tasks": [
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Prep CGI client meetings",
+          "completed": false,
+          "priority": true
+        }
+      ]
+    }
+  },
+  "tabs": [
+    {
+      "id": "tab_1767633005477",
+      "name": "Trives"
+    },
+    {
+      "id": "tab_1767631893924",
+      "name": "Gulo"
+    },
+    {
+      "id": "tab_1767584725303",
+      "name": "CGI"
+    },
+    {
+      "id": "tab_default",
+      "name": "Property"
+    },
+    {
+      "id": "tab_1767588263055",
+      "name": "Admin"
+    },
+    {
+      "id": "tab_1767584731600",
+      "name": "Other"
+    },
+    {
+      "id": "tab_1767632997599",
+      "name": "SEA"
+    }
+  ],
+  "listItems": {
+    "tab_default": "Nieuw hothok uit elkaar halen\nNieuw kippen buitenhok deur en hardware cloth\nUitgraven bijen gebied\nBijen gebied level\nChainsaw fence posts blokken\nDeer fence RV tuin\nElectric fence RV tuin\nChainsaw boom plantenbak\nWoodchippen\nPermachink energy seal\nMetal sheet op kelder deur\nSchuren bookshelf planken\nPropane tiles\nDode bomen opzagen\nTakken van bomen zagen\nOnkruid wieden\nChainsaw road to Iris\nChange chicken roosts\nRV waterline\nRV water afdoppen binnen\nMedicine wheel afmaken \nLive edge voor deur\nLive edge kelder boekenkast\nWorkshop extention make\nDeck keuken replace\nPatio replace\nWeg tot creek make\nFiresmart actions\nMicro hydro and more solar\nWeg naar Eris vrijmaken\n\nBinnen:\nOpruimen kantoor gebied\nCamping storage opruimen\nWorkshop opruimen\nReplace windows\nBreaker RV vervangen\nRV water afdoppen\nCompressor in elkaar\nLamp kelder badkamer vervangen \nPlinten verven\nVloer boven schuren en lakken\nBadkamer boven redesign\nWierrook dingen maken",
+    "tab_1767584725303": "LNGC Strategic Vision workshops (with business waht & why\nLNGC ServiceNow Roadmap\nLNGC App Steward CSA\nLNGC CoPilot adoption pragmatic\nLNGC Access to Shell?\nAUC - post quantum 101 call\nAUC - dayforce opp and partnership\nAUC - knowledge mgt AI\nOBS \nCoE Rec prep\nReview D-Wave agreement\nDayforce HCM Assessment follow up\nAsk Rocky View for customer quote\nFollow up Jason Cameron City Calgary Quantum\nFollow up Chris Wallace Quantum\nAzure Cost emails re-instate\nSinopec next steps\nLNGC BRM project\nContact selkirk: Tiffany Snauwaert – School of Business, and School of Environment and Geomatics. Tel: 1 (888) 953-1133 Ext. 21268\nProgressio actions\nMark training AWS, Cyber, salesforce\nAH: Azure Devops to Jira plan\nLNGC\nCovenant\nWCB data protection\nWCB data governance\nDLCG Phase 2\nAWS account follow up GTO\nMagz to ETP in March next year\nAI training in WBU\nPut CRM client meetings for coming months",
+    "tab_1767584731600": "",
+    "tab_1767588263055": "",
+    "tab_1767631893924": "",
+    "tab_1767632997599": "",
+    "tab_1767633005477": ""
+  }
+}
