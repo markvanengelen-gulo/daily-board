@@ -31,6 +31,94 @@ let currentTabId = null;
 let listTextareaSaveTimeout = null;
 
 // GitHub API Functions
+
+/**
+ * Check the current SHA of data.json from GitHub
+ * Used to detect if the file has been modified remotely
+ * @returns {Promise<string|null>} The current SHA of the file, or null if failed
+ */
+async function checkRemoteSHA() {
+    try {
+        const metaResponse = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
+            {
+                headers: GITHUB_CONFIG.token ? {
+                    'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                } : {
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            }
+        );
+        
+        if (!metaResponse.ok) {
+            console.error('Failed to check remote SHA:', metaResponse.status);
+            return null;
+        }
+        
+        const metaData = await metaResponse.json();
+        return metaData.sha;
+    } catch (error) {
+        console.error('Error checking remote SHA:', error);
+        return null;
+    }
+}
+
+/**
+ * Create a timestamped backup of data.json in the repository
+ * The backup file will be named data_backup_YYYYMMDDTHHMMSS.json
+ * @returns {Promise<boolean>} True if backup was successful, false otherwise
+ */
+async function createBackup() {
+    try {
+        if (!GITHUB_CONFIG.token) {
+            console.log('Cannot create backup: GitHub token not configured');
+            return false;
+        }
+        
+        // Generate timestamp for backup filename (ISO 8601 format without special chars)
+        const now = new Date();
+        const timestamp = now.toISOString().replace(/[-:]/g, '').split('.')[0]; // Format: YYYYMMDDTHHMMSS
+        const backupPath = `data_backup_${timestamp}.json`;
+        
+        // Encode the current appData as base64 for GitHub API
+        const jsonString = JSON.stringify(appData, null, 2);
+        const bytes = new TextEncoder().encode(jsonString);
+        const binString = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+        const content = btoa(binString);
+        
+        // Create the backup file in the repository
+        const response = await fetch(
+            `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${backupPath}`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${GITHUB_CONFIG.token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                body: JSON.stringify({
+                    message: `Backup data before update - ${timestamp}`,
+                    content: content,
+                    branch: GITHUB_CONFIG.branch
+                })
+            }
+        );
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Failed to create backup:', errorData);
+            return false;
+        }
+        
+        console.log(`Backup created successfully: ${backupPath}`);
+        return true;
+    } catch (error) {
+        console.error('Error creating backup:', error);
+        return false;
+    }
+}
+
 async function fetchDataFromGitHub() {
     try {
         showSyncIndicator('loading');
@@ -97,7 +185,49 @@ async function updateDataToGitHub(message = 'Update data') {
             throw new Error('GitHub token not configured');
         }
         
-        // Fetch latest SHA before updating
+        // Check for sync conflicts: Compare stored SHA with remote SHA
+        // This detects if the file was modified remotely while we were editing
+        const remoteSHA = await checkRemoteSHA();
+        if (remoteSHA && currentSHA && remoteSHA !== currentSHA) {
+            // Conflict detected: remote file has changed since we last fetched it
+            isSyncing = false;
+            hideSyncIndicator();
+            
+            const userChoice = confirm(
+                '⚠️ SYNC CONFLICT DETECTED!\n\n' +
+                'The data.json file was modified remotely since you last synced.\n' +
+                'Your changes may overwrite someone else\'s changes.\n\n' +
+                'Click OK to fetch the latest data and merge manually.\n' +
+                'Click Cancel to force save your local changes (this will overwrite remote changes).'
+            );
+            
+            if (userChoice) {
+                // User chose to fetch latest data for manual resolution
+                showMessage('Fetching latest data for manual merge. Please review and save again.', 'error');
+                await fetchDataFromGitHub();
+                updateDateDisplay();
+                loadDisciplines();
+                loadTasks();
+                loadTabs();
+                loadCurrentTab();
+                return;
+            } else {
+                // User chose to force save - update the currentSHA to remote SHA
+                currentSHA = remoteSHA;
+                showMessage('Force saving your changes. Remote changes will be overwritten.', 'error');
+            }
+        }
+        
+        // Create a timestamped backup before updating
+        // This protects against data loss in case something goes wrong
+        const backupSuccess = await createBackup();
+        if (!backupSuccess) {
+            console.warn('Failed to create backup, but continuing with update');
+            // Show warning but don't block the update
+            showMessage('Warning: Backup creation failed. Proceeding with update.', 'error');
+        }
+        
+        // Fetch latest SHA before updating (in case it changed during backup creation)
         const metaResponse = await fetch(
             `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
             {
@@ -495,8 +625,6 @@ function deleteDiscipline(index) {
     // Remove the discipline completion status for today
     delete dateEntry.disciplines[index];
     saveDateEntry(dateKey, dateEntry);
-    loadDisciplines();
-}
     loadDisciplines();
 }
 
