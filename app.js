@@ -848,8 +848,8 @@ function shiftTaskDate(index, direction) {
     
     if (!task) return;
     
-    // Calculate target date
-    const targetDate = new Date(currentDate);
+    // Calculate target date - create a proper copy to avoid mutations
+    const targetDate = new Date(currentDate.getTime());
     targetDate.setDate(targetDate.getDate() + direction);
     const targetDateKey = targetDate.toISOString().split('T')[0];
     
