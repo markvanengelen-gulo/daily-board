@@ -31,6 +31,10 @@
         {
           "name": "Kerst spullen opruimen",
           "completed": false
+        },
+        {
+          "name": "Chamber emails",
+          "completed": false
         }
       ]
     },
