@@ -279,7 +279,6 @@ async function initializeApp() {
     
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
     loadTabs();
     loadCurrentTab();
     
@@ -289,7 +288,6 @@ async function initializeApp() {
     // Only refresh UI if data changed
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
     loadTabs();
     loadCurrentTab();
 }
@@ -330,7 +328,6 @@ function changeDate(days) {
     currentDate.setDate(currentDate.getDate() + days);
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
 }
 
 function updateDateDisplay() {
@@ -396,6 +393,15 @@ function loadDisciplines() {
         const disciplineElement = createDisciplineElement(discipline, index, isCompleted);
         container.appendChild(disciplineElement);
     });
+    
+    // Add dynamic tasks after fixed disciplines
+    let tasks = dateEntry.tasks || [];
+    
+    // Render tasks in their current order (no sorting, user can drag to reorder)
+    tasks.forEach((task, index) => {
+        const taskElement = createTaskElement(task, index);
+        container.appendChild(taskElement);
+    });
 }
 
 function createDisciplineElement(name, index, isCompleted) {
@@ -432,40 +438,15 @@ function toggleDiscipline(index, isCompleted) {
 
 // Tasks management
 function loadTasks() {
-    const container = document.getElementById('tasksList');
-    container.innerHTML = '';
-
-    const dateKey = getDateKey();
-    const dateEntry = getDateEntry(dateKey);
-    let tasks = dateEntry.tasks || [];
-
-    if (tasks.length === 0) {
-        const emptyState = document.createElement('div');
-        emptyState.className = 'empty-state';
-        emptyState.textContent = 'No tasks for this day. Add one above!';
-        container.appendChild(emptyState);
-        return;
-    }
-    
-    // Sort tasks: priority tasks first, then by original order
-    const sortedTasks = [...tasks].map((task, origIndex) => ({ task, origIndex }));
-    sortedTasks.sort((a, b) => {
-        // Priority tasks come first
-        if (a.task.priority && !b.task.priority) return -1;
-        if (!a.task.priority && b.task.priority) return 1;
-        // Keep original order for tasks with same priority status
-        return a.origIndex - b.origIndex;
-    });
-
-    sortedTasks.forEach(({ task, origIndex }) => {
-        const taskElement = createTaskElement(task, origIndex);
-        container.appendChild(taskElement);
-    });
+    // Tasks are now displayed in the disciplines section
+    // This function is kept for compatibility but doesn't render anything
 }
 
 function createTaskElement(task, index) {
     const div = document.createElement('div');
     div.className = 'task-item' + (task.priority ? ' priority-task' : '');
+    div.draggable = true;
+    div.dataset.taskIndex = index;
 
     const leftDiv = document.createElement('div');
     leftDiv.className = 'item-left';
@@ -501,6 +482,12 @@ function createTaskElement(task, index) {
     rightDiv.appendChild(deleteBtn);
     div.appendChild(leftDiv);
     div.appendChild(rightDiv);
+    
+    // Drag and drop event listeners
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragover', handleDragOver);
+    div.addEventListener('drop', handleDrop);
+    div.addEventListener('dragend', handleDragEnd);
 
     return div;
 }
@@ -517,7 +504,7 @@ function addTask() {
     saveDateEntry(dateKey, dateEntry);
 
     input.value = '';
-    loadTasks();
+    loadDisciplines();
 }
 
 function toggleTask(index, isCompleted) {
@@ -526,7 +513,7 @@ function toggleTask(index, isCompleted) {
     if (dateEntry.tasks[index]) {
         dateEntry.tasks[index].completed = isCompleted;
         saveDateEntry(dateKey, dateEntry);
-        loadTasks();
+        loadDisciplines();
     }
 }
 
@@ -535,7 +522,7 @@ function deleteTask(index) {
     const dateEntry = getDateEntry(dateKey);
     dateEntry.tasks.splice(index, 1);
     saveDateEntry(dateKey, dateEntry);
-    loadTasks();
+    loadDisciplines();
 }
 
 function toggleTaskPriority(index) {
@@ -557,7 +544,7 @@ function toggleTaskPriority(index) {
     // Toggle priority
     task.priority = !task.priority;
     saveDateEntry(dateKey, dateEntry);
-    loadTasks();
+    loadDisciplines();
 }
 
 // Tabs/Lists management
@@ -806,4 +793,90 @@ function clearGitHubToken() {
     
     // Show message
     showMessage('GitHub token cleared. The app will now only save data locally.', 'success');
+}
+
+// Drag and Drop functionality for tasks
+let draggedTaskElement = null;
+let draggedTaskIndex = null;
+
+function isTaskItem(element) {
+    return element.classList.contains('task-item');
+}
+
+function handleDragStart(e) {
+    draggedTaskElement = e.currentTarget;
+    draggedTaskIndex = parseInt(draggedTaskElement.dataset.taskIndex);
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    
+    const targetElement = e.currentTarget;
+    
+    // Only allow dropping on task items
+    if (!isTaskItem(targetElement)) {
+        return false;
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    
+    // Add visual feedback
+    if (targetElement !== draggedTaskElement) {
+        targetElement.classList.add('drag-over');
+    }
+    
+    return false;
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+    
+    const targetElement = e.currentTarget;
+    
+    // Only allow dropping on task items
+    if (!isTaskItem(targetElement)) {
+        return false;
+    }
+    
+    if (draggedTaskElement !== targetElement) {
+        const targetTaskIndex = parseInt(targetElement.dataset.taskIndex);
+        
+        // Reorder tasks in data
+        const dateKey = getDateKey();
+        const dateEntry = getDateEntry(dateKey);
+        const tasks = dateEntry.tasks;
+        
+        // Remove dragged task and insert at new position
+        const draggedTask = tasks[draggedTaskIndex];
+        tasks.splice(draggedTaskIndex, 1);
+        
+        // When dragging downward, we need to adjust the target index by -1
+        // because removing the dragged item shifts all subsequent indices down by 1
+        const adjustedTargetIndex = targetTaskIndex > draggedTaskIndex ? targetTaskIndex - 1 : targetTaskIndex;
+        tasks.splice(adjustedTargetIndex, 0, draggedTask);
+        
+        saveDateEntry(dateKey, dateEntry);
+        loadDisciplines();
+    }
+    
+    // Remove visual feedback
+    targetElement.classList.remove('drag-over');
+    
+    return false;
+}
+
+function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    
+    // Remove all visual feedback
+    const allTaskItems = document.querySelectorAll('.task-item');
+    allTaskItems.forEach(item => {
+        item.classList.remove('drag-over');
+    });
+    
+    draggedTaskElement = null;
+    draggedTaskIndex = null;
 }
