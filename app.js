@@ -279,7 +279,6 @@ async function initializeApp() {
     
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
     loadTabs();
     loadCurrentTab();
     
@@ -289,7 +288,6 @@ async function initializeApp() {
     // Only refresh UI if data changed
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
     loadTabs();
     loadCurrentTab();
 }
@@ -330,7 +328,6 @@ function changeDate(days) {
     currentDate.setDate(currentDate.getDate() + days);
     updateDateDisplay();
     loadDisciplines();
-    loadTasks();
 }
 
 function updateDateDisplay() {
