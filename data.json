@@ -69,6 +69,10 @@
       "name": "Trives"
     },
     {
+      "id": "tab_1767631893924",
+      "name": "Gulo"
+    },
+    {
       "id": "tab_default",
       "name": "Property"
     },
@@ -83,10 +87,6 @@
     {
       "id": "tab_1767588263055",
       "name": "Admin"
-    },
-    {
-      "id": "tab_1767631893924",
-      "name": "Gulo"
     },
     {
       "id": "tab_1767632997599",
