@@ -1,0 +1,100 @@
+{
+  "dateEntries": {
+    "2026-01-05": {
+      "disciplines": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "tasks": [
+        {
+          "name": "AGLC Databricks prep",
+          "completed": false
+        },
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Call Alex - Wifi extender",
+          "completed": false
+        },
+        {
+          "name": "Prep eCO assessment review",
+          "completed": false,
+          "priority": true
+        },
+        {
+          "name": "Afwassen",
+          "completed": false
+        },
+        {
+          "name": "Kerst spullen opruimen",
+          "completed": false
+        },
+        {
+          "name": "Chamber emails",
+          "completed": false
+        },
+        {
+          "name": "Kippen sneeuw scheppen",
+          "completed": false
+        },
+        {
+          "name": "Tractor sneeuw",
+          "completed": false
+        }
+      ]
+    },
+    "2026-01-06": {
+      "disciplines": {},
+      "tasks": [
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Prep CGI client meetings",
+          "completed": false,
+          "priority": true
+        }
+      ]
+    }
+  },
+  "tabs": [
+    {
+      "id": "tab_default",
+      "name": "Property"
+    },
+    {
+      "id": "tab_1767584725303",
+      "name": "CGI"
+    },
+    {
+      "id": "tab_1767584731600",
+      "name": "Other"
+    },
+    {
+      "id": "tab_1767588263055",
+      "name": "Admin"
+    },
+    {
+      "id": "tab_1767631893924",
+      "name": "Gulo"
+    },
+    {
+      "id": "tab_1767632997599",
+      "name": "List 6"
+    }
+  ],
+  "listItems": {
+    "tab_default": "test 11",
+    "tab_1767584725303": "test 22",
+    "tab_1767584731600": "",
+    "tab_1767588263055": "",
+    "tab_1767631893924": "",
+    "tab_1767632997599": ""
+  }
+}
