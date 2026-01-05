@@ -119,6 +119,23 @@ async function createBackup() {
     }
 }
 
+// Data structure initialization helper
+function initializeDataStructure(data) {
+    if (!data) {
+        data = {};
+    }
+    if (!data.listItems) {
+        data.listItems = {};
+    }
+    if (!data.tabs) {
+        data.tabs = [];
+    }
+    if (!data.dateEntries) {
+        data.dateEntries = {};
+    }
+    return data;
+}
+
 /**
  * Fetch data from GitHub repository
  * Uses the GitHub Contents API to get the file content directly,
@@ -164,18 +181,15 @@ async function fetchDataFromGitHub() {
             throw new Error(`Failed to decode base64 content: ${decodeError.message}`);
         }
         
-        const data = JSON.parse(decodedContent);
+        let data;
+        try {
+            data = JSON.parse(decodedContent);
+        } catch (parseError) {
+            throw new Error(`Failed to parse JSON content: ${parseError.message}`);
+        }
         
         // Ensure the data structure has all required fields
-        if (!data.listItems) {
-            data.listItems = {};
-        }
-        if (!data.tabs) {
-            data.tabs = [];
-        }
-        if (!data.dateEntries) {
-            data.dateEntries = {};
-        }
+        data = initializeDataStructure(data);
         
         appData = data;
         
@@ -389,20 +403,21 @@ function showError(message) {
 
 // Local storage fallback functions
 function loadFromLocalStorageFallback() {
-    const data = {
-        dateEntries: {},
-        tabs: [],
-        listItems: {}
-    };
+    let data = {};
     
     // Try to load existing localStorage data
     const tabsData = localStorage.getItem('dailyBoard_global_tabs');
     if (tabsData) {
-        data.tabs = JSON.parse(tabsData);
+        try {
+            data.tabs = JSON.parse(tabsData);
+        } catch (e) {
+            console.error('Failed to parse localStorage tabs data:', e);
+        }
     }
     // Don't create default tabs here - let initialization handle it
     
-    return data;
+    // Ensure all required fields are initialized
+    return initializeDataStructure(data);
 }
 
 function saveToLocalStorage() {
