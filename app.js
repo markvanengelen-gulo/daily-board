@@ -742,6 +742,20 @@ function createTaskElement(task, index) {
     const rightDiv = document.createElement('div');
     rightDiv.className = 'task-actions';
     
+    const backBtn = document.createElement('button');
+    backBtn.className = 'date-shift-btn';
+    backBtn.innerHTML = '&lt;';
+    backBtn.setAttribute('aria-label', 'Move task to previous day');
+    backBtn.title = 'Move to previous day';
+    backBtn.addEventListener('click', () => shiftTaskDate(index, -1));
+
+    const forwardBtn = document.createElement('button');
+    forwardBtn.className = 'date-shift-btn';
+    forwardBtn.innerHTML = '&gt;';
+    forwardBtn.setAttribute('aria-label', 'Move task to next day');
+    forwardBtn.title = 'Move to next day';
+    forwardBtn.addEventListener('click', () => shiftTaskDate(index, 1));
+    
     const priorityBtn = document.createElement('button');
     priorityBtn.className = 'priority-btn' + (task.priority ? ' active' : '');
     priorityBtn.innerHTML = '<span aria-hidden="true">🔴</span>';
@@ -756,6 +770,8 @@ function createTaskElement(task, index) {
     deleteBtn.title = 'Delete task';
     deleteBtn.addEventListener('click', () => deleteTask(index));
 
+    rightDiv.appendChild(backBtn);
+    rightDiv.appendChild(forwardBtn);
     rightDiv.appendChild(priorityBtn);
     rightDiv.appendChild(deleteBtn);
     div.appendChild(leftDiv);
@@ -822,6 +838,36 @@ function toggleTaskPriority(index) {
     // Toggle priority
     task.priority = !task.priority;
     saveDateEntry(dateKey, dateEntry);
+    loadTasks();
+}
+
+function shiftTaskDate(index, direction) {
+    const sourceDateKey = getDateKey();
+    const sourceDateEntry = getDateEntry(sourceDateKey);
+    const task = sourceDateEntry.tasks[index];
+    
+    if (!task) return;
+    
+    // Calculate target date - create a proper copy to avoid mutations
+    const targetDate = new Date(currentDate.getTime());
+    targetDate.setDate(targetDate.getDate() + direction);
+    const targetDateKey = targetDate.toISOString().split('T')[0];
+    
+    // Get or create target date entry
+    const targetDateEntry = getDateEntry(targetDateKey);
+    
+    // Move task to target date and remove from source date
+    targetDateEntry.tasks.push({ ...task });
+    sourceDateEntry.tasks.splice(index, 1);
+    
+    // Update both date entries in appData
+    appData.dateEntries[targetDateKey] = targetDateEntry;
+    appData.dateEntries[sourceDateKey] = sourceDateEntry;
+    
+    // Save to GitHub once with both changes
+    updateDataToGitHub('Move task between dates');
+    
+    // Reload tasks for current view
     loadTasks();
 }
 
