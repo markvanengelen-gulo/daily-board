@@ -402,11 +402,7 @@ function loadDisciplines() {
     const tasksWithIndices = tasks.map((task, index) => ({ task, originalIndex: index }));
     
     // Sort: priority tasks first, maintaining relative order within each group
-    tasksWithIndices.sort((a, b) => {
-        if (a.task.priority && !b.task.priority) return -1;
-        if (!a.task.priority && b.task.priority) return 1;
-        return 0; // Maintain original order within priority/non-priority groups
-    });
+    tasksWithIndices.sort((a, b) => (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0));
     
     // Render tasks in sorted order
     tasksWithIndices.forEach(({ task, originalIndex }) => {
