@@ -173,10 +173,10 @@ async function fetchDataFromGitHub() {
         
         // Decode the base64 content from the API response
         // This avoids the caching issue with raw.githubusercontent.com
-        const base64Content = metaData.content;
+        // GitHub API returns base64 with newlines; we must strip them before decoding
         let decodedContent;
         try {
-            decodedContent = atob(base64Content.replace(/\s/g, ''));
+            decodedContent = atob(metaData.content.replace(/\s/g, ''));
         } catch (decodeError) {
             throw new Error(`Failed to decode base64 content: ${decodeError.message}`);
         }
