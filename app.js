@@ -400,20 +400,18 @@ function loadDisciplines() {
     // Add dynamic tasks after fixed disciplines
     let tasks = dateEntry.tasks || [];
     
-    // Sort tasks: 
-    // 1. Uncompleted priority tasks first
-    // 2. Then uncompleted regular tasks
-    // 3. Then completed priority tasks
-    // 4. Finally completed regular tasks
+    // Sort tasks to keep uncompleted tasks at top and completed tasks at bottom
+    // Within each group (completed/uncompleted), priority tasks appear first
     const tasksWithIndices = tasks.map((task, index) => ({ task, originalIndex: index }));
     
-    // Sort: first by completion status (uncompleted first), then by priority (priority first)
+    // Sort by completion status first (uncompleted < completed),
+    // then by priority (priority > non-priority) within each completion group
     tasksWithIndices.sort((a, b) => {
-        // First sort by completion status
+        // First sort by completion status: uncompleted tasks come first
         if (a.task.completed !== b.task.completed) {
-            return a.task.completed ? 1 : -1;
+            return a.task.completed ? 1 : -1; // -1 = a before b, 1 = b before a
         }
-        // Then sort by priority (within same completion status)
+        // Then sort by priority within same completion status: priority tasks first
         return (b.task.priority ? 1 : 0) - (a.task.priority ? 1 : 0);
     });
     
@@ -747,8 +745,12 @@ function saveListTextarea() {
 // GitHub Token Configuration Functions
 async function refreshData() {
     try {
-        // Write current data to GitHub first
-        await updateDataToGitHub('Manual refresh - save current state');
+        // Attempt to write current data to GitHub first
+        try {
+            await updateDataToGitHub('Manual refresh - save current state');
+        } catch (saveError) {
+            console.log('Save during refresh failed, continuing with fetch:', saveError);
+        }
         
         // Then fetch the latest data from GitHub
         await fetchDataFromGitHub();
