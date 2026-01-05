@@ -37,6 +37,10 @@
         {
           "name": "Kippen sneeuw scheppen",
           "completed": false
+        },
+        {
+          "name": "Tractor sneeuw",
+          "completed": false
         }
       ]
     },
