@@ -31,7 +31,8 @@
       "tasks": [
         {
           "name": "test33",
-          "completed": false
+          "completed": false,
+          "priority": true
         }
       ]
     }
