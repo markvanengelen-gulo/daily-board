@@ -119,11 +119,17 @@ async function createBackup() {
     }
 }
 
+/**
+ * Fetch data from GitHub repository
+ * Uses the GitHub Contents API to get the file content directly,
+ * which avoids the caching issue that occurs with raw.githubusercontent.com
+ * (raw URLs can cache for up to 5 minutes, causing sync delays between devices)
+ */
 async function fetchDataFromGitHub() {
     try {
         showSyncIndicator('loading');
         
-        // Fetch file metadata to get SHA
+        // Fetch file metadata and content in one API call
         const metaResponse = await fetch(
             `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/contents/${GITHUB_CONFIG.dataPath}`,
             {
@@ -143,16 +149,23 @@ async function fetchDataFromGitHub() {
         const metaData = await metaResponse.json();
         currentSHA = metaData.sha;
         
-        // Fetch actual data content
-        const dataResponse = await fetch(
-            `https://raw.githubusercontent.com/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${GITHUB_CONFIG.branch}/${GITHUB_CONFIG.dataPath}`
-        );
+        // Decode the base64 content from the API response
+        // This avoids the caching issue with raw.githubusercontent.com
+        const base64Content = metaData.content;
+        const decodedContent = atob(base64Content.replace(/\s/g, ''));
+        const data = JSON.parse(decodedContent);
         
-        if (!dataResponse.ok) {
-            throw new Error(`Failed to fetch data: ${dataResponse.status}`);
+        // Ensure the data structure has all required fields
+        if (!data.listItems) {
+            data.listItems = {};
+        }
+        if (!data.tabs) {
+            data.tabs = [];
+        }
+        if (!data.dateEntries) {
+            data.dateEntries = {};
         }
         
-        const data = await dataResponse.json();
         appData = data;
         
         hideSyncIndicator();
