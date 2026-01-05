@@ -218,6 +218,38 @@ section h3 {
     font-size: 1.4rem;
 }
 
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    margin-bottom: 0;
+}
+
+.refresh-btn {
+    padding: 8px 12px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.3s;
+    line-height: 1;
+}
+
+.refresh-btn:hover {
+    background: #5568d3;
+    transform: rotate(180deg);
+}
+
+.refresh-btn:active {
+    transform: rotate(180deg) scale(0.95);
+}
+
 .disciplines-list,
 .tasks-list,
 .list-items {
@@ -332,18 +364,22 @@ section h3 {
 
 
 .delete-btn {
-    padding: 6px 12px;
-    background: #ff6b6b;
-    color: white;
+    padding: 4px 8px;
+    background: transparent;
+    color: #ff6b6b;
     border: none;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9rem;
-    transition: background 0.3s;
+    font-size: 1.5rem;
+    line-height: 1;
+    transition: all 0.3s;
+    font-weight: bold;
 }
 
 .delete-btn:hover {
-    background: #ff5252;
+    background: #ffebee;
+    color: #ff5252;
+    transform: scale(1.2);
 }
 
 .add-task-container,
