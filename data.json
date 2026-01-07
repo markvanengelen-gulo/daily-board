@@ -94,6 +94,10 @@
         {
           "name": "Andrea bellen 1 PM",
           "completed": false
+        },
+        {
+          "name": "Update Trives Finances till today",
+          "completed": false
         }
       ]
     }
