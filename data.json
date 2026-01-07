@@ -74,6 +74,10 @@
         {
           "name": "AGLC Databricks MVP",
           "completed": false
+        },
+        {
+          "name": "eCO slides finish & send",
+          "completed": false
         }
       ]
     }
