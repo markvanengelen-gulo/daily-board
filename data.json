@@ -78,6 +78,10 @@
         {
           "name": "eCO slides finish & send",
           "completed": false
+        },
+        {
+          "name": "REEPS Deb email read",
+          "completed": false
         }
       ]
     }
