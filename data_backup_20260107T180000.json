@@ -1,0 +1,149 @@
+{
+  "dateEntries": {
+    "2026-01-05": {
+      "disciplines": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "tasks": [
+        {
+          "name": "AGLC Databricks prep",
+          "completed": false
+        },
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Call Alex - Wifi extender",
+          "completed": false
+        },
+        {
+          "name": "Prep eCO assessment review",
+          "completed": false,
+          "priority": true
+        },
+        {
+          "name": "Afwassen",
+          "completed": false
+        },
+        {
+          "name": "Kerst spullen opruimen",
+          "completed": false
+        },
+        {
+          "name": "Chamber emails",
+          "completed": false
+        },
+        {
+          "name": "Kippen sneeuw scheppen",
+          "completed": false
+        },
+        {
+          "name": "Tractor sneeuw",
+          "completed": false
+        }
+      ]
+    },
+    "2026-01-06": {
+      "disciplines": {},
+      "tasks": [
+        {
+          "name": "Call Len",
+          "completed": false
+        },
+        {
+          "name": "Prep CGI client meetings",
+          "completed": false,
+          "priority": true
+        }
+      ]
+    },
+    "2026-01-07": {
+      "disciplines": {
+        "0": true,
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true
+      },
+      "tasks": [
+        {
+          "name": "AGLC Databricks MVP",
+          "completed": false
+        },
+        {
+          "name": "eCO slides finish & send",
+          "completed": false
+        },
+        {
+          "name": "REEPS Deb email read",
+          "completed": false
+        },
+        {
+          "name": "REEPS Emergency Plan draft",
+          "completed": false
+        },
+        {
+          "name": "WCLC proposal draft",
+          "completed": false
+        },
+        {
+          "name": "Andrea bellen 1 PM",
+          "completed": false
+        },
+        {
+          "name": "Update Trives Finances till today",
+          "completed": false
+        }
+      ]
+    }
+  },
+  "tabs": [
+    {
+      "id": "tab_1767633005477",
+      "name": "Trives"
+    },
+    {
+      "id": "tab_1767631893924",
+      "name": "Gulo"
+    },
+    {
+      "id": "tab_1767584725303",
+      "name": "CGI"
+    },
+    {
+      "id": "tab_default",
+      "name": "Property"
+    },
+    {
+      "id": "tab_1767588263055",
+      "name": "Admin"
+    },
+    {
+      "id": "tab_1767584731600",
+      "name": "Other"
+    },
+    {
+      "id": "tab_1767632997599",
+      "name": "SEA"
+    },
+    {
+      "id": "tab_1767808800734",
+      "name": "List 8"
+    }
+  ],
+  "listItems": {
+    "tab_default": "Nieuw hothok uit elkaar halen\nNieuw kippen buitenhok deur en hardware cloth\nUitgraven bijen gebied\nBijen gebied level\nChainsaw fence posts blokken\nDeer fence RV tuin\nElectric fence RV tuin\nChainsaw boom plantenbak\nWoodchippen\nPermachink energy seal\nMetal sheet op kelder deur\nSchuren bookshelf planken\nPropane tiles\nDode bomen opzagen\nTakken van bomen zagen\nOnkruid wieden\nChainsaw road to Iris\nChange chicken roosts\nRV waterline\nRV water afdoppen binnen\nMedicine wheel afmaken \nLive edge voor deur\nLive edge kelder boekenkast\nWorkshop extention make\nDeck keuken replace\nPatio replace\nWeg tot creek make\nFiresmart actions\nMicro hydro and more solar\nWeg naar Eris vrijmaken\n\nBinnen:\nOpruimen kantoor gebied\nCamping storage opruimen\nWorkshop opruimen\nReplace windows\nBreaker RV vervangen\nRV water afdoppen\nCompressor in elkaar\nLamp kelder badkamer vervangen \nPlinten verven\nVloer boven schuren en lakken\nBadkamer boven redesign\nWierrook dingen maken",
+    "tab_1767584725303": "LNGC Strategic Vision workshops (with business waht & why\nLNGC ServiceNow Roadmap\nLNGC App Steward CSA\nLNGC CoPilot adoption pragmatic\nLNGC Access to Shell?\nAUC - post quantum 101 call\nAUC - dayforce opp and partnership\nAUC - knowledge mgt AI\nOBS \nCoE Rec prep\nReview D-Wave agreement\nDayforce HCM Assessment follow up\nAsk Rocky View for customer quote\nFollow up Jason Cameron City Calgary Quantum\nFollow up Chris Wallace Quantum\nAzure Cost emails re-instate\nSinopec next steps\nLNGC BRM project\nContact selkirk: Tiffany Snauwaert Ã¢ÂÂ School of Business, and School of Environment and Geomatics. Tel: 1 (888) 953-1133 Ext. 21268\nProgressio actions\nMark training AWS, Cyber, salesforce\nAH: Azure Devops to Jira plan\nLNGC\nCovenant\nWCB data protection\nWCB data governance\nDLCG Phase 2\nAWS account follow up GTO\nMagz to ETP in March next year\nAI training in WBU\nPut CRM client meetings for coming months",
+    "tab_1767584731600": "",
+    "tab_1767588263055": "Scuba insurance renew\nChamber actions\nReeps actions\nLegacy board actions\nTrives into quickbooks and corp taxes\nConvert miniDV to digital\nLeren canada business taxes\nLeren canada personal taxes",
+    "tab_1767631893924": "Design document SIEM solution\nEbook - add content\nSearch relevant RFPs for Gulo\nAutomate feed of new RFPs\nComplete Gulo AI blog automation\nadd Tank fills to SEA website as well as DSD, Explore diving, Open water course\nCancel Nya things\nGulo website new blogs on services\nPut AWS SCP automation on marketplace\nGulo Udemy AI training",
+    "tab_1767632997599": "Publish website\nUpdate Facebook page\nAdd to TripAdvisor events, airbnb tours\nValue. Local experts to guide sustainably\nMission. Create memorable experiences in nature in the slocan valley\nGetting started with SEA:\nDiscover scuba with Arlen\nSD10 kids activities \nMake health leadership program\nRunning plan and race\n\nMen's circle plan:\nScuba diving / swimming\nHikes\nOvernight trip \nPaintball\nBoardgames night\nNelson or castlegar event ",
+    "tab_1767633005477": "",
+    "tab_1767808800734": ""
+  }
+}
