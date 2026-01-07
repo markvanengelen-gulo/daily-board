@@ -82,6 +82,10 @@
         {
           "name": "REEPS Deb email read",
           "completed": false
+        },
+        {
+          "name": "REEPS Emergency Plan draft",
+          "completed": false
         }
       ]
     }
