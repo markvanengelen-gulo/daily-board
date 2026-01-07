@@ -86,6 +86,10 @@
         {
           "name": "REEPS Emergency Plan draft",
           "completed": false
+        },
+        {
+          "name": "WCLC proposal draft",
+          "completed": false
         }
       ]
     }
