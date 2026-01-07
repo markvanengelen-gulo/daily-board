@@ -70,7 +70,12 @@
         "3": true,
         "4": true
       },
-      "tasks": []
+      "tasks": [
+        {
+          "name": "AGLC Databricks MVP",
+          "completed": false
+        }
+      ]
     }
   },
   "tabs": [
