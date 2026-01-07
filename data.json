@@ -77,7 +77,8 @@
         },
         {
           "name": "eCO slides finish & send",
-          "completed": false
+          "completed": false,
+          "priority": true
         },
         {
           "name": "REEPS Deb email read",
