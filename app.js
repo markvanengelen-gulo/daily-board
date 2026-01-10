@@ -29,6 +29,413 @@ const FIXED_DISCIPLINES = [
 let currentDate = new Date();
 let currentTabId = null;
 let listTextareaSaveTimeout = null;
+let isOffline = false;
+let pendingSyncQueue = [];
+
+// WebSocket Configuration (Optional)
+const WEBSOCKET_CONFIG = {
+    enabled: false, // Set to true to enable WebSocket sync
+    url: 'ws://localhost:3000',
+    socket: null
+};
+
+// Data Retention Configuration
+const DATA_RETENTION = {
+    daysBack: 5,
+    daysForward: 5
+};
+
+// Data Retention Functions
+
+/**
+ * Calculate the date range for data retention (5 days back, 5 days forward from today)
+ * @returns {Object} Object with startDate and endDate
+ */
+function getRetentionDateRange() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset to start of day
+    
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - DATA_RETENTION.daysBack);
+    
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + DATA_RETENTION.daysForward);
+    
+    return {
+        startDate,
+        endDate,
+        startDateKey: startDate.toISOString().split('T')[0],
+        endDateKey: endDate.toISOString().split('T')[0]
+    };
+}
+
+/**
+ * Check if a date key is within the retention window
+ * @param {string} dateKey - Date key in YYYY-MM-DD format
+ * @returns {boolean} True if within retention window
+ */
+function isWithinRetentionWindow(dateKey) {
+    const { startDate, endDate } = getRetentionDateRange();
+    const date = new Date(dateKey + 'T00:00:00'); // Parse as local date
+    return date >= startDate && date <= endDate;
+}
+
+/**
+ * Clean up old date entries outside the retention window
+ * Removes entries older than 5 days back and newer than 5 days forward
+ * @returns {number} Number of entries removed
+ */
+function cleanupOldEntries() {
+    if (!appData.dateEntries) {
+        return 0;
+    }
+    
+    const dateKeys = Object.keys(appData.dateEntries);
+    const removedKeys = [];
+    
+    dateKeys.forEach(dateKey => {
+        if (!isWithinRetentionWindow(dateKey)) {
+            removedKeys.push(dateKey);
+            delete appData.dateEntries[dateKey];
+        }
+    });
+    
+    if (removedKeys.length > 0) {
+        console.log(`Data retention: Removed ${removedKeys.length} old entries:`, removedKeys);
+    }
+    
+    return removedKeys.length;
+}
+
+/**
+ * Schedule periodic cleanup of old entries
+ * Runs cleanup every hour
+ */
+function schedulePeriodicCleanup() {
+    // Run cleanup immediately on startup
+    const removedCount = cleanupOldEntries();
+    if (removedCount > 0) {
+        // Save changes if entries were removed
+        updateDataToGitHub('Automatic cleanup: removed old entries outside retention window');
+    }
+    
+    // Schedule cleanup every hour (3600000 ms)
+    setInterval(() => {
+        const count = cleanupOldEntries();
+        if (count > 0) {
+            updateDataToGitHub('Automatic cleanup: removed old entries outside retention window');
+        }
+    }, 3600000); // 1 hour
+}
+
+// Service Worker and Offline Support
+
+/**
+ * Register service worker for offline support
+ */
+async function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/sw.js');
+            console.log('[App] Service Worker registered:', registration);
+            
+            // Handle service worker updates
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // New service worker available, reload to update
+                        console.log('[App] New service worker available, reloading...');
+                        if (confirm('A new version is available. Reload to update?')) {
+                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                            window.location.reload();
+                        }
+                    }
+                });
+            });
+        } catch (error) {
+            console.error('[App] Service Worker registration failed:', error);
+        }
+    }
+}
+
+/**
+ * Monitor online/offline status
+ */
+function setupOfflineDetection() {
+    // Set initial status
+    isOffline = !navigator.onLine;
+    updateOnlineStatus();
+    
+    // Listen for online/offline events
+    window.addEventListener('online', () => {
+        isOffline = false;
+        updateOnlineStatus();
+        console.log('[App] Back online');
+        showMessage('Connection restored! Syncing pending changes...', 'success');
+        
+        // Process pending sync queue
+        processPendingSyncQueue();
+    });
+    
+    window.addEventListener('offline', () => {
+        isOffline = true;
+        updateOnlineStatus();
+        console.log('[App] Offline');
+        showMessage('You are offline. Changes will be saved locally and synced when connection is restored.', 'error');
+    });
+}
+
+/**
+ * Update UI to reflect online/offline status
+ */
+function updateOnlineStatus() {
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) {
+        if (isOffline) {
+            indicator.textContent = '⚠️ Offline Mode';
+            indicator.style.display = 'block';
+            indicator.style.background = '#ff9800';
+        } else if (!indicator.textContent.includes('Loading') && !indicator.textContent.includes('Saving')) {
+            indicator.style.display = 'none';
+        }
+    }
+}
+
+/**
+ * Add operation to sync queue for offline processing
+ */
+function addToPendingSyncQueue(operation) {
+    pendingSyncQueue.push({
+        operation,
+        timestamp: Date.now(),
+        data: JSON.parse(JSON.stringify(appData)) // Deep copy
+    });
+    
+    // Save queue to localStorage
+    localStorage.setItem('dailyBoard_syncQueue', JSON.stringify(pendingSyncQueue));
+    console.log('[App] Added to sync queue:', operation);
+}
+
+/**
+ * Process pending sync queue when back online
+ */
+async function processPendingSyncQueue() {
+    if (pendingSyncQueue.length === 0) {
+        return;
+    }
+    
+    console.log(`[App] Processing ${pendingSyncQueue.length} pending sync operations...`);
+    
+    // Process each queued operation
+    while (pendingSyncQueue.length > 0) {
+        const item = pendingSyncQueue.shift();
+        try {
+            // Use the most recent data (from the last queue item)
+            appData = item.data;
+            await updateDataToGitHub(item.operation);
+            console.log('[App] Synced:', item.operation);
+        } catch (error) {
+            console.error('[App] Failed to sync queued operation:', error);
+            // Re-add to queue if failed
+            pendingSyncQueue.unshift(item);
+            break;
+        }
+    }
+    
+    // Clear queue from localStorage if empty
+    if (pendingSyncQueue.length === 0) {
+        localStorage.removeItem('dailyBoard_syncQueue');
+        showMessage('All pending changes synced successfully!', 'success');
+    } else {
+        localStorage.setItem('dailyBoard_syncQueue', JSON.stringify(pendingSyncQueue));
+    }
+}
+
+/**
+ * Load pending sync queue from localStorage on startup
+ */
+function loadPendingSyncQueue() {
+    try {
+        const queueData = localStorage.getItem('dailyBoard_syncQueue');
+        if (queueData) {
+            pendingSyncQueue = JSON.parse(queueData);
+            console.log(`[App] Loaded ${pendingSyncQueue.length} pending sync operations`);
+            
+            if (pendingSyncQueue.length > 0 && !isOffline) {
+                // Process queue if we're online
+                processPendingSyncQueue();
+            }
+        }
+    } catch (error) {
+        console.error('[App] Failed to load sync queue:', error);
+        pendingSyncQueue = [];
+    }
+}
+
+// WebSocket Support (Optional)
+
+/**
+ * Initialize WebSocket connection for real-time sync
+ * This is optional - app works without it using GitHub API
+ */
+function initializeWebSocket() {
+    if (!WEBSOCKET_CONFIG.enabled) {
+        console.log('[WebSocket] Disabled - using GitHub API for sync');
+        return;
+    }
+    
+    try {
+        // Check if Socket.IO is available
+        if (typeof io === 'undefined') {
+            console.warn('[WebSocket] Socket.IO library not loaded. Install with: <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>');
+            WEBSOCKET_CONFIG.enabled = false;
+            return;
+        }
+        
+        console.log('[WebSocket] Connecting to', WEBSOCKET_CONFIG.url);
+        WEBSOCKET_CONFIG.socket = io(WEBSOCKET_CONFIG.url);
+        
+        // Connection established
+        WEBSOCKET_CONFIG.socket.on('connected', (data) => {
+            console.log('[WebSocket] Connected:', data.message);
+            showMessage('Real-time sync enabled!', 'success');
+            
+            // Request initial data sync
+            WEBSOCKET_CONFIG.socket.emit('sync:request');
+        });
+        
+        // Receive sync response
+        WEBSOCKET_CONFIG.socket.on('sync:response', (data) => {
+            console.log('[WebSocket] Received data from server');
+            appData = initializeDataStructure(data);
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+        });
+        
+        // Receive updates from other clients
+        WEBSOCKET_CONFIG.socket.on('data:updated', (data) => {
+            console.log('[WebSocket] Received update from another client');
+            appData = initializeDataStructure(data);
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+            showMessage('Data updated from another device', 'success');
+        });
+        
+        // Confirmation that data was saved
+        WEBSOCKET_CONFIG.socket.on('data:saved', (response) => {
+            console.log('[WebSocket] Data saved successfully:', response.timestamp);
+        });
+        
+        // Error handling
+        WEBSOCKET_CONFIG.socket.on('sync:error', (error) => {
+            console.error('[WebSocket] Sync error:', error);
+            logError('WebSocket sync', new Error(error.message));
+            showError('WebSocket sync failed: ' + error.message);
+        });
+        
+        WEBSOCKET_CONFIG.socket.on('data:error', (error) => {
+            console.error('[WebSocket] Data error:', error);
+            logError('WebSocket data', new Error(error.message));
+            showError('WebSocket data error: ' + error.message);
+        });
+        
+        // Connection error
+        WEBSOCKET_CONFIG.socket.on('connect_error', (error) => {
+            console.error('[WebSocket] Connection error:', error);
+            logError('WebSocket connection', error);
+            showError('WebSocket connection failed. Falling back to GitHub sync.');
+            WEBSOCKET_CONFIG.enabled = false;
+        });
+        
+        // Disconnection
+        WEBSOCKET_CONFIG.socket.on('disconnect', () => {
+            console.log('[WebSocket] Disconnected from server');
+            showMessage('WebSocket disconnected. Using GitHub sync.', 'error');
+        });
+        
+    } catch (error) {
+        console.error('[WebSocket] Initialization failed:', error);
+        logError('WebSocket init', error);
+        WEBSOCKET_CONFIG.enabled = false;
+    }
+}
+
+/**
+ * Send data update via WebSocket
+ */
+function sendWebSocketUpdate(message = 'Update data') {
+    if (!WEBSOCKET_CONFIG.enabled || !WEBSOCKET_CONFIG.socket || !WEBSOCKET_CONFIG.socket.connected) {
+        return false;
+    }
+    
+    console.log('[WebSocket] Sending update:', message);
+    WEBSOCKET_CONFIG.socket.emit('data:update', appData);
+    return true;
+}
+
+// Error Logging and Enhanced Error Handling
+
+/**
+ * Log errors to localStorage for debugging
+ */
+function logError(context, error, additionalInfo = {}) {
+    const errorLog = {
+        timestamp: new Date().toISOString(),
+        context,
+        message: error.message || String(error),
+        stack: error.stack,
+        ...additionalInfo
+    };
+    
+    console.error(`[Error] ${context}:`, error, additionalInfo);
+    
+    try {
+        // Get existing error log
+        const existingLog = localStorage.getItem('dailyBoard_errorLog');
+        let errorArray = existingLog ? JSON.parse(existingLog) : [];
+        
+        // Add new error
+        errorArray.push(errorLog);
+        
+        // Keep only last 50 errors
+        if (errorArray.length > 50) {
+            errorArray = errorArray.slice(-50);
+        }
+        
+        // Save back to localStorage
+        localStorage.setItem('dailyBoard_errorLog', JSON.stringify(errorArray));
+    } catch (e) {
+        console.error('[Error] Failed to log error to localStorage:', e);
+    }
+}
+
+/**
+ * Get error log from localStorage
+ */
+function getErrorLog() {
+    try {
+        const log = localStorage.getItem('dailyBoard_errorLog');
+        return log ? JSON.parse(log) : [];
+    } catch (e) {
+        console.error('[Error] Failed to retrieve error log:', e);
+        return [];
+    }
+}
+
+/**
+ * Clear error log
+ */
+function clearErrorLog() {
+    localStorage.removeItem('dailyBoard_errorLog');
+    console.log('[App] Error log cleared');
+}
 
 // GitHub API Functions
 
@@ -52,7 +459,9 @@ async function checkRemoteSHA() {
         );
         
         if (!metaResponse.ok) {
-            console.error('Failed to check remote SHA:', metaResponse.status);
+            const errorMsg = `Failed to check remote SHA: ${metaResponse.status}`;
+            console.error(errorMsg);
+            logError('checkRemoteSHA', new Error(errorMsg), { status: metaResponse.status });
             return null;
         }
         
@@ -60,6 +469,7 @@ async function checkRemoteSHA() {
         return metaData.sha;
     } catch (error) {
         console.error('Error checking remote SHA:', error);
+        logError('checkRemoteSHA', error);
         return null;
     }
 }
@@ -197,6 +607,7 @@ async function fetchDataFromGitHub() {
         return data;
     } catch (error) {
         console.error('Error fetching data from GitHub:', error);
+        logError('fetchDataFromGitHub', error);
         hideSyncIndicator();
         showError('Failed to load data from GitHub. Using local fallback.');
         
@@ -206,6 +617,15 @@ async function fetchDataFromGitHub() {
 }
 
 async function updateDataToGitHub(message = 'Update data') {
+    // If offline, queue the operation and save locally
+    if (isOffline) {
+        console.log('[App] Offline - queuing sync operation');
+        addToPendingSyncQueue(message);
+        saveToLocalStorage();
+        showMessage('Offline: Changes saved locally and will sync when online', 'error');
+        return;
+    }
+    
     if (isSyncing) {
         console.log('Sync already in progress, skipping...');
         return;
@@ -328,6 +748,9 @@ async function updateDataToGitHub(message = 'Update data') {
         
         // Also save to localStorage as backup
         saveToLocalStorage();
+        
+        // Send WebSocket update if enabled
+        sendWebSocketUpdate(message);
     } catch (error) {
         console.error('Error updating data to GitHub:', error);
         isSyncing = false;
@@ -353,6 +776,7 @@ async function updateDataToGitHub(message = 'Update data') {
         }
         
         console.error('Detailed error:', errorMessage);
+        logError('updateDataToGitHub', error, { errorType, httpStatus });
         showError(errorMessage);
         
         // Save to localStorage as fallback
@@ -439,6 +863,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
+    // Register service worker for offline support
+    registerServiceWorker();
+    
+    // Setup offline detection
+    setupOfflineDetection();
+    
+    // Load pending sync queue
+    loadPendingSyncQueue();
+    
     // Show loading indicator
     showSyncIndicator('loading');
     
@@ -463,6 +896,12 @@ async function initializeApp() {
     loadTasks();
     loadTabs();
     loadCurrentTab();
+    
+    // Start periodic cleanup of old entries
+    schedulePeriodicCleanup();
+    
+    // Initialize WebSocket if enabled
+    initializeWebSocket();
 }
 
 function setupEventListeners() {
@@ -500,6 +939,9 @@ function setupEventListeners() {
     // GitHub token configuration
     document.getElementById('saveTokenBtn').addEventListener('click', saveGitHubToken);
     document.getElementById('clearTokenBtn').addEventListener('click', clearGitHubToken);
+    
+    // Error log viewer
+    document.getElementById('viewErrorLogBtn').addEventListener('click', viewErrorLog);
     
     // Update token status on load
     updateTokenStatus();
@@ -1372,4 +1814,34 @@ function handleTabDragEnd(e) {
     
     draggedTabElement = null;
     draggedTabId = null;
+}
+
+// Error Log Viewer
+function viewErrorLog() {
+    const errorLog = getErrorLog();
+    
+    if (errorLog.length === 0) {
+        alert('No errors logged. The app is running smoothly! 🎉');
+        return;
+    }
+    
+    let logMessage = `Error Log (${errorLog.length} entries):\n\n`;
+    
+    // Show last 10 errors
+    const recentErrors = errorLog.slice(-10);
+    recentErrors.forEach((error, index) => {
+        logMessage += `${index + 1}. [${error.timestamp}] ${error.context}\n`;
+        logMessage += `   Message: ${error.message}\n`;
+        if (error.status) {
+            logMessage += `   Status: ${error.status}\n`;
+        }
+        logMessage += '\n';
+    });
+    
+    logMessage += '\nWould you like to clear the error log?';
+    
+    if (confirm(logMessage)) {
+        clearErrorLog();
+        showMessage('Error log cleared successfully!', 'success');
+    }
 }

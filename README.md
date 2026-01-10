@@ -28,11 +28,29 @@ Track 5 fixed daily habits:
 - Each list can contain multiple items with checkbox tracking
 - Lists are shared across all days (not day-specific)
 
-### Cross-Device Synchronization ✨ NEW
+### Cross-Device Synchronization
 - Sync your data across all devices using GitHub as centralized storage
 - All data is stored in a `data.json` file in your repository
 - Automatic synchronization when configured with a GitHub Personal Access Token
 - Fallback to local storage when offline or not configured
+
+### Data Retention Policy ✨ NEW
+- Automatically maintains a rolling 10-day window of task history
+- Keeps tasks from 5 days in the past to 5 days in the future
+- Periodic cleanup runs hourly to remove old entries
+- Helps keep your data manageable and focused on current/upcoming tasks
+
+### Offline Support ✨ NEW
+- Service worker enables offline functionality
+- Changes are queued and synced when connection is restored
+- Visual indicators show online/offline status
+- Works seamlessly even with intermittent connectivity
+
+### Enhanced Error Handling ✨ NEW
+- Detailed error logging for debugging
+- Error logs stored in browser localStorage
+- View error log from the app footer
+- Better error messages with actionable feedback
 
 ## Usage
 
@@ -143,3 +161,68 @@ Without a GitHub token:
 - All your data is stored in your own GitHub repository
 - No third-party services are used
 - You have complete control over your data
+
+## New Features Details
+
+### Data Retention Policy
+
+The app now implements an automatic data retention policy to keep your task history manageable:
+
+- **10-Day Rolling Window**: Only tasks from the past 5 days and next 5 days are kept
+- **Automatic Cleanup**: Runs on app startup and every hour to remove old entries
+- **Transparent**: All cleanups are logged to the console for visibility
+- **Configurable**: Settings can be adjusted in the `DATA_RETENTION` configuration
+
+This helps prevent data bloat while keeping relevant task history available.
+
+### Offline Support
+
+The app now works offline using modern web technologies:
+
+- **Service Worker**: Caches app assets for offline access
+- **Sync Queue**: Changes made offline are queued and synced when connection restores
+- **Status Indicators**: Visual feedback shows online/offline status
+- **Seamless Experience**: The app continues to work normally even when offline
+
+All data changes are saved to localStorage when offline, then automatically synced to GitHub when you're back online.
+
+### Enhanced Error Handling
+
+Better error reporting and debugging capabilities:
+
+- **Error Logging**: All errors are logged with timestamps and context
+- **Error Viewer**: Click "View Error Log" in the footer to see recent errors
+- **Detailed Messages**: More helpful error messages with actionable guidance
+- **Debug Information**: Logs include HTTP status codes and error types
+
+The error log helps diagnose issues with GitHub sync, network problems, or other failures.
+
+## Troubleshooting
+
+### Offline Mode
+If you see "⚠️ Offline Mode" indicator:
+- Check your internet connection
+- Changes will be saved locally
+- They'll sync automatically when you're back online
+
+### Error Log
+If you experience issues:
+1. Click "View Error Log" in the footer
+2. Check recent errors for details
+3. Clear the log after addressing issues
+
+### Data Retention
+If old tasks are missing:
+- The app keeps only 10 days of history (5 back, 5 forward)
+- Use the Download button to export full data before cleanup
+- Adjust `DATA_RETENTION` settings if needed
+
+## WebSocket Server (Optional)
+
+For real-time sync across devices, you can optionally run the WebSocket server:
+
+1. Install dependencies: `npm install`
+2. Start server: `npm start`
+3. Enable WebSocket in app.js (see WEBSOCKET_SETUP.md)
+
+See [WEBSOCKET_SETUP.md](WEBSOCKET_SETUP.md) for detailed instructions.
