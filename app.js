@@ -32,6 +32,13 @@ let listTextareaSaveTimeout = null;
 let isOffline = false;
 let pendingSyncQueue = [];
 
+// WebSocket Configuration (Optional)
+const WEBSOCKET_CONFIG = {
+    enabled: false, // Set to true to enable WebSocket sync
+    url: 'ws://localhost:3000',
+    socket: null
+};
+
 // Data Retention Configuration
 const DATA_RETENTION = {
     daysBack: 5,
@@ -264,6 +271,113 @@ function loadPendingSyncQueue() {
         console.error('[App] Failed to load sync queue:', error);
         pendingSyncQueue = [];
     }
+}
+
+// WebSocket Support (Optional)
+
+/**
+ * Initialize WebSocket connection for real-time sync
+ * This is optional - app works without it using GitHub API
+ */
+function initializeWebSocket() {
+    if (!WEBSOCKET_CONFIG.enabled) {
+        console.log('[WebSocket] Disabled - using GitHub API for sync');
+        return;
+    }
+    
+    try {
+        // Check if Socket.IO is available
+        if (typeof io === 'undefined') {
+            console.warn('[WebSocket] Socket.IO library not loaded. Install with: <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>');
+            WEBSOCKET_CONFIG.enabled = false;
+            return;
+        }
+        
+        console.log('[WebSocket] Connecting to', WEBSOCKET_CONFIG.url);
+        WEBSOCKET_CONFIG.socket = io(WEBSOCKET_CONFIG.url);
+        
+        // Connection established
+        WEBSOCKET_CONFIG.socket.on('connected', (data) => {
+            console.log('[WebSocket] Connected:', data.message);
+            showMessage('Real-time sync enabled!', 'success');
+            
+            // Request initial data sync
+            WEBSOCKET_CONFIG.socket.emit('sync:request');
+        });
+        
+        // Receive sync response
+        WEBSOCKET_CONFIG.socket.on('sync:response', (data) => {
+            console.log('[WebSocket] Received data from server');
+            appData = initializeDataStructure(data);
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+        });
+        
+        // Receive updates from other clients
+        WEBSOCKET_CONFIG.socket.on('data:updated', (data) => {
+            console.log('[WebSocket] Received update from another client');
+            appData = initializeDataStructure(data);
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+            showMessage('Data updated from another device', 'success');
+        });
+        
+        // Confirmation that data was saved
+        WEBSOCKET_CONFIG.socket.on('data:saved', (response) => {
+            console.log('[WebSocket] Data saved successfully:', response.timestamp);
+        });
+        
+        // Error handling
+        WEBSOCKET_CONFIG.socket.on('sync:error', (error) => {
+            console.error('[WebSocket] Sync error:', error);
+            logError('WebSocket sync', new Error(error.message));
+            showError('WebSocket sync failed: ' + error.message);
+        });
+        
+        WEBSOCKET_CONFIG.socket.on('data:error', (error) => {
+            console.error('[WebSocket] Data error:', error);
+            logError('WebSocket data', new Error(error.message));
+            showError('WebSocket data error: ' + error.message);
+        });
+        
+        // Connection error
+        WEBSOCKET_CONFIG.socket.on('connect_error', (error) => {
+            console.error('[WebSocket] Connection error:', error);
+            logError('WebSocket connection', error);
+            showError('WebSocket connection failed. Falling back to GitHub sync.');
+            WEBSOCKET_CONFIG.enabled = false;
+        });
+        
+        // Disconnection
+        WEBSOCKET_CONFIG.socket.on('disconnect', () => {
+            console.log('[WebSocket] Disconnected from server');
+            showMessage('WebSocket disconnected. Using GitHub sync.', 'error');
+        });
+        
+    } catch (error) {
+        console.error('[WebSocket] Initialization failed:', error);
+        logError('WebSocket init', error);
+        WEBSOCKET_CONFIG.enabled = false;
+    }
+}
+
+/**
+ * Send data update via WebSocket
+ */
+function sendWebSocketUpdate(message = 'Update data') {
+    if (!WEBSOCKET_CONFIG.enabled || !WEBSOCKET_CONFIG.socket || !WEBSOCKET_CONFIG.socket.connected) {
+        return false;
+    }
+    
+    console.log('[WebSocket] Sending update:', message);
+    WEBSOCKET_CONFIG.socket.emit('data:update', appData);
+    return true;
 }
 
 // Error Logging and Enhanced Error Handling
@@ -634,6 +748,9 @@ async function updateDataToGitHub(message = 'Update data') {
         
         // Also save to localStorage as backup
         saveToLocalStorage();
+        
+        // Send WebSocket update if enabled
+        sendWebSocketUpdate(message);
     } catch (error) {
         console.error('Error updating data to GitHub:', error);
         isSyncing = false;
@@ -782,6 +899,9 @@ async function initializeApp() {
     
     // Start periodic cleanup of old entries
     schedulePeriodicCleanup();
+    
+    // Initialize WebSocket if enabled
+    initializeWebSocket();
 }
 
 function setupEventListeners() {

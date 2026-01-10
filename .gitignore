@@ -1,0 +1,27 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backups (keep in repo for now as part of the data retention feature)
+# data_backup_*.json
+
+# Test files
+/tmp/
+test_*.html
