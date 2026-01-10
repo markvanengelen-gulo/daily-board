@@ -820,6 +820,9 @@ function setupEventListeners() {
     document.getElementById('saveTokenBtn').addEventListener('click', saveGitHubToken);
     document.getElementById('clearTokenBtn').addEventListener('click', clearGitHubToken);
     
+    // Error log viewer
+    document.getElementById('viewErrorLogBtn').addEventListener('click', viewErrorLog);
+    
     // Update token status on load
     updateTokenStatus();
 }
@@ -1691,4 +1694,34 @@ function handleTabDragEnd(e) {
     
     draggedTabElement = null;
     draggedTabId = null;
+}
+
+// Error Log Viewer
+function viewErrorLog() {
+    const errorLog = getErrorLog();
+    
+    if (errorLog.length === 0) {
+        alert('No errors logged. The app is running smoothly! 🎉');
+        return;
+    }
+    
+    let logMessage = `Error Log (${errorLog.length} entries):\n\n`;
+    
+    // Show last 10 errors
+    const recentErrors = errorLog.slice(-10);
+    recentErrors.forEach((error, index) => {
+        logMessage += `${index + 1}. [${error.timestamp}] ${error.context}\n`;
+        logMessage += `   Message: ${error.message}\n`;
+        if (error.status) {
+            logMessage += `   Status: ${error.status}\n`;
+        }
+        logMessage += '\n';
+    });
+    
+    logMessage += '\nWould you like to clear the error log?';
+    
+    if (confirm(logMessage)) {
+        clearErrorLog();
+        showMessage('Error log cleared successfully!', 'success');
+    }
 }
