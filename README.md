@@ -216,3 +216,13 @@ If old tasks are missing:
 - The app keeps only 10 days of history (5 back, 5 forward)
 - Use the Download button to export full data before cleanup
 - Adjust `DATA_RETENTION` settings if needed
+
+## WebSocket Server (Optional)
+
+For real-time sync across devices, you can optionally run the WebSocket server:
+
+1. Install dependencies: `npm install`
+2. Start server: `npm start`
+3. Enable WebSocket in app.js (see WEBSOCKET_SETUP.md)
+
+See [WEBSOCKET_SETUP.md](WEBSOCKET_SETUP.md) for detailed instructions.
