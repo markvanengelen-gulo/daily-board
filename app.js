@@ -48,11 +48,12 @@ const DATA_RETENTION = {
 // Auto-Sync Configuration
 const AUTO_SYNC_CONFIG = {
     enabled: true, // Enable automatic polling for changes
-    intervalMs: 30000, // Poll every 30 seconds (30000ms)
+    intervalMs: 5000, // Poll every 5 seconds (5000ms) - syncs when user is active on screen
     initialDelayMs: 5000, // Initial check delay after startup (5 seconds)
     lastSyncTime: null,
     pollTimer: null,
-    isChecking: false // Flag to prevent concurrent checks
+    isChecking: false, // Flag to prevent concurrent checks
+    pausedDueToVisibility: false // Flag to track if auto-sync is paused due to page visibility
 };
 
 // Time constants for sync status display
@@ -174,6 +175,22 @@ function startAutoSync() {
         if (AUTO_SYNC_CONFIG.isChecking) {
             console.log('[Auto-Sync] Previous check still in progress, skipping');
             return;
+        }
+        
+        // Check if page is currently visible/active
+        // Only perform auto-sync when user is actively viewing the page
+        if (document.hidden) {
+            console.log('[Auto-Sync] Page not visible, skipping poll');
+            AUTO_SYNC_CONFIG.pausedDueToVisibility = true;
+            // Still update the display to show time elapsed
+            updateSyncStatusDisplay();
+            return;
+        }
+        
+        // Log when resuming after being paused
+        if (AUTO_SYNC_CONFIG.pausedDueToVisibility) {
+            console.log('[Auto-Sync] Page now visible, resuming sync');
+            AUTO_SYNC_CONFIG.pausedDueToVisibility = false;
         }
         
         if (isOffline || isSyncing) {
@@ -353,6 +370,24 @@ function setupOfflineDetection() {
         updateOnlineStatus();
         console.log('[App] Offline');
         showMessage('You are offline. Changes will be saved locally and synced when connection is restored.', 'error');
+    });
+    
+    // Listen for page visibility changes to pause/resume auto-sync
+    // This ensures auto-sync only runs when the user is actively viewing the page
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            console.log('[App] Page hidden, auto-sync will pause on next cycle');
+        } else {
+            console.log('[App] Page visible, auto-sync will resume');
+            // When page becomes visible again, immediately check for updates
+            // This ensures users see the latest data when they return to the tab
+            if (!isOffline && !isSyncing && !AUTO_SYNC_CONFIG.isChecking && GITHUB_CONFIG.token) {
+                console.log('[App] Checking for updates after page became visible');
+                checkForRemoteUpdates().catch(err => {
+                    console.error('[App] Error checking for updates on visibility change:', err);
+                });
+            }
+        }
     });
 }
 
@@ -930,27 +965,34 @@ async function updateDataToGitHub(message = 'Update data') {
         hideSyncIndicator();
         
         // Provide detailed error message based on error type and status code
-        let errorMessage = 'Failed to save data to GitHub. Changes saved locally.';
+        // Note: We don't show error messages when GitHub token is not configured,
+        // as this is a valid state for offline-only usage
+        let errorMessage = null;
         
         if (errorType === 'NO_TOKEN') {
-            errorMessage += ' (GitHub token not configured)';
+            // Don't show error message when token is not configured - silent fallback to localStorage
+            console.log('GitHub token not configured. Changes saved to localStorage only.');
         } else if (errorType === 'FETCH_SHA_FAILED') {
-            errorMessage += ' (Unable to fetch file metadata - check token permissions)';
+            errorMessage = 'Failed to save data to GitHub. Changes saved locally. (Unable to fetch file metadata - check token permissions)';
         } else if (httpStatus === 401) {
-            errorMessage += ' (Authentication failed - check token)';
+            errorMessage = 'Failed to save data to GitHub. Changes saved locally. (Authentication failed - check token)';
         } else if (httpStatus === 403) {
-            errorMessage += ' (Access denied - check token permissions)';
+            errorMessage = 'Failed to save data to GitHub. Changes saved locally. (Access denied - check token permissions)';
         } else if (httpStatus === 404) {
-            errorMessage += ' (File not found - check repository and path)';
+            errorMessage = 'Failed to save data to GitHub. Changes saved locally. (File not found - check repository and path)';
         } else if (httpStatus === 409) {
-            errorMessage += ' (Conflict - file was modified elsewhere)';
+            errorMessage = 'Failed to save data to GitHub. Changes saved locally. (Conflict - file was modified elsewhere)';
         } else if (error.message) {
-            errorMessage += ` (${error.message})`;
+            errorMessage = `Failed to save data to GitHub. Changes saved locally. (${error.message})`;
         }
         
-        console.error('Detailed error:', errorMessage);
+        console.error('Detailed error:', errorMessage || 'Token not configured');
         logError('updateDataToGitHub', error, { errorType, httpStatus });
-        showError(errorMessage);
+        
+        // Only show error message if one was set (i.e., not for NO_TOKEN case)
+        if (errorMessage) {
+            showError(errorMessage);
+        }
         
         // Save to localStorage as fallback
         saveToLocalStorage();
