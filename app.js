@@ -49,8 +49,16 @@ const DATA_RETENTION = {
 const AUTO_SYNC_CONFIG = {
     enabled: true, // Enable automatic polling for changes
     intervalMs: 30000, // Poll every 30 seconds (30000ms)
+    initialDelayMs: 5000, // Initial check delay after startup (5 seconds)
     lastSyncTime: null,
-    pollTimer: null
+    pollTimer: null,
+    isChecking: false // Flag to prevent concurrent checks
+};
+
+// Time constants for sync status display
+const TIME_CONSTANTS = {
+    MS_PER_MINUTE: 60000,
+    MINUTES_PER_HOUR: 60
 };
 
 // Data Retention Functions
@@ -162,6 +170,12 @@ function startAutoSync() {
     
     // Set up periodic polling
     AUTO_SYNC_CONFIG.pollTimer = setInterval(async () => {
+        // Prevent concurrent executions
+        if (AUTO_SYNC_CONFIG.isChecking) {
+            console.log('[Auto-Sync] Previous check still in progress, skipping');
+            return;
+        }
+        
         if (isOffline || isSyncing) {
             console.log('[Auto-Sync] Skipping poll (offline or sync in progress)');
             // Still update the display to show time elapsed
@@ -169,6 +183,7 @@ function startAutoSync() {
             return;
         }
         
+        AUTO_SYNC_CONFIG.isChecking = true;
         try {
             await checkForRemoteUpdates();
         } catch (error) {
@@ -176,6 +191,8 @@ function startAutoSync() {
             // Log error but don't show intrusive notifications for background sync failures
             // User can check error log if needed
             logError('autoSync', error);
+        } finally {
+            AUTO_SYNC_CONFIG.isChecking = false;
         }
         
         // Update sync status display on every poll cycle
@@ -184,10 +201,10 @@ function startAutoSync() {
     
     // Also do an initial check after a short delay
     setTimeout(() => {
-        if (!isOffline && !isSyncing) {
+        if (!isOffline && !isSyncing && !AUTO_SYNC_CONFIG.isChecking) {
             checkForRemoteUpdates();
         }
-    }, 5000); // Check 5 seconds after startup
+    }, AUTO_SYNC_CONFIG.initialDelayMs);
 }
 
 /**
@@ -261,17 +278,17 @@ function updateSyncStatusDisplay() {
         const lastSync = new Date(AUTO_SYNC_CONFIG.lastSyncTime);
         const now = new Date();
         const diffMs = now - lastSync;
-        const diffMins = Math.floor(diffMs / 60000);
+        const diffMins = Math.floor(diffMs / TIME_CONSTANTS.MS_PER_MINUTE);
         
         let timeAgo;
         if (diffMins < 1) {
             timeAgo = 'just now';
         } else if (diffMins === 1) {
             timeAgo = '1 minute ago';
-        } else if (diffMins < 60) {
+        } else if (diffMins < TIME_CONSTANTS.MINUTES_PER_HOUR) {
             timeAgo = `${diffMins} minutes ago`;
         } else {
-            const hours = Math.floor(diffMins / 60);
+            const hours = Math.floor(diffMins / TIME_CONSTANTS.MINUTES_PER_HOUR);
             timeAgo = hours === 1 ? '1 hour ago' : `${hours} hours ago`;
         }
         
