@@ -49,6 +49,7 @@ const DATA_RETENTION = {
 const AUTO_SYNC_CONFIG = {
     enabled: true, // Enable automatic polling for changes
     intervalMs: 5000, // Poll every 5 seconds (5000ms) - syncs when user is active on screen
+                      // Note: This is 720 requests/hour, well within GitHub's 5,000 requests/hour limit
     initialDelayMs: 5000, // Initial check delay after startup (5 seconds)
     lastSyncTime: null,
     pollTimer: null,
@@ -379,13 +380,20 @@ function setupOfflineDetection() {
             console.log('[App] Page hidden, auto-sync will pause on next cycle');
         } else {
             console.log('[App] Page visible, auto-sync will resume');
-            // When page becomes visible again, immediately check for updates
+            // When page becomes visible again, check for updates if enough time has passed
             // This ensures users see the latest data when they return to the tab
+            // Only check if we haven't synced in the last 5 seconds to avoid excessive API calls
             if (!isOffline && !isSyncing && !AUTO_SYNC_CONFIG.isChecking && GITHUB_CONFIG.token) {
-                console.log('[App] Checking for updates after page became visible');
-                checkForRemoteUpdates().catch(err => {
-                    console.error('[App] Error checking for updates on visibility change:', err);
-                });
+                // Only check for updates if more than 5 seconds have passed since last sync
+                // This prevents excessive API calls when frequently switching tabs
+                if (!AUTO_SYNC_CONFIG.lastSyncTime || (Date.now() - new Date(AUTO_SYNC_CONFIG.lastSyncTime).getTime()) > 5000) {
+                    console.log('[App] Checking for updates after page became visible');
+                    checkForRemoteUpdates().catch(err => {
+                        console.error('[App] Error checking for updates on visibility change:', err);
+                    });
+                } else {
+                    console.log('[App] Page became visible, but recent sync already occurred, skipping immediate check');
+                }
             }
         }
     });
@@ -993,7 +1001,7 @@ async function updateDataToGitHub(message = 'Update data') {
             errorMessage = `Failed to save data to GitHub. Changes saved locally. (${error.message})`;
         }
         
-        console.error('Detailed error:', errorMessage || 'Token not configured');
+        console.error('Detailed error:', errorMessage || 'No error message (token not configured - expected behavior)');
         logError('updateDataToGitHub', error, { errorType, httpStatus });
         
         // Only show error message if one was set (i.e., not for NO_TOKEN case)
