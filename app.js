@@ -45,6 +45,14 @@ const DATA_RETENTION = {
     daysForward: 5
 };
 
+// Auto-Sync Configuration
+const AUTO_SYNC_CONFIG = {
+    enabled: true, // Enable automatic polling for changes
+    intervalMs: 30000, // Poll every 30 seconds (30000ms)
+    lastSyncTime: null,
+    pollTimer: null
+};
+
 // Data Retention Functions
 
 /**
@@ -126,6 +134,133 @@ function schedulePeriodicCleanup() {
             updateDataToGitHub('Automatic cleanup: removed old entries outside retention window');
         }
     }, 3600000); // 1 hour
+}
+
+// Auto-Sync Functions
+
+/**
+ * Start automatic polling to detect remote file changes
+ * Periodically checks if the remote file has been updated by another device
+ */
+function startAutoSync() {
+    if (!AUTO_SYNC_CONFIG.enabled) {
+        console.log('[Auto-Sync] Disabled');
+        return;
+    }
+    
+    if (!GITHUB_CONFIG.token) {
+        console.log('[Auto-Sync] GitHub token not configured, skipping auto-sync');
+        return;
+    }
+    
+    console.log(`[Auto-Sync] Starting automatic sync polling (interval: ${AUTO_SYNC_CONFIG.intervalMs}ms)`);
+    
+    // Clear any existing timer
+    if (AUTO_SYNC_CONFIG.pollTimer) {
+        clearInterval(AUTO_SYNC_CONFIG.pollTimer);
+    }
+    
+    // Set up periodic polling
+    AUTO_SYNC_CONFIG.pollTimer = setInterval(async () => {
+        if (isOffline || isSyncing) {
+            console.log('[Auto-Sync] Skipping poll (offline or sync in progress)');
+            return;
+        }
+        
+        try {
+            await checkForRemoteUpdates();
+        } catch (error) {
+            console.error('[Auto-Sync] Error during auto-sync:', error);
+        }
+    }, AUTO_SYNC_CONFIG.intervalMs);
+    
+    // Also do an initial check after a short delay
+    setTimeout(() => {
+        if (!isOffline && !isSyncing) {
+            checkForRemoteUpdates();
+        }
+    }, 5000); // Check 5 seconds after startup
+}
+
+/**
+ * Stop automatic polling
+ */
+function stopAutoSync() {
+    if (AUTO_SYNC_CONFIG.pollTimer) {
+        clearInterval(AUTO_SYNC_CONFIG.pollTimer);
+        AUTO_SYNC_CONFIG.pollTimer = null;
+        console.log('[Auto-Sync] Stopped automatic sync polling');
+    }
+}
+
+/**
+ * Check if the remote file has been updated since our last sync
+ * If so, fetch the latest data and merge intelligently
+ */
+async function checkForRemoteUpdates() {
+    try {
+        const remoteSHA = await checkRemoteSHA();
+        
+        // If we don't have a current SHA or remote check failed, skip
+        if (!remoteSHA || !currentSHA) {
+            return;
+        }
+        
+        // If SHA has changed, remote file was updated
+        if (remoteSHA !== currentSHA) {
+            console.log('[Auto-Sync] Remote file updated, fetching changes...');
+            
+            // Update last sync time
+            AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
+            updateSyncStatusDisplay();
+            
+            // Fetch the updated data
+            await fetchDataFromGitHub();
+            
+            // Update UI with the latest data
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+            
+            // Show notification
+            showMessage('📥 Data synchronized from remote', 'success', 3000);
+        }
+    } catch (error) {
+        console.error('[Auto-Sync] Error checking for remote updates:', error);
+    }
+}
+
+/**
+ * Update the sync status display in the UI
+ */
+function updateSyncStatusDisplay() {
+    const syncStatus = document.getElementById('syncStatus');
+    if (!syncStatus) return;
+    
+    if (AUTO_SYNC_CONFIG.lastSyncTime) {
+        const lastSync = new Date(AUTO_SYNC_CONFIG.lastSyncTime);
+        const now = new Date();
+        const diffMs = now - lastSync;
+        const diffMins = Math.floor(diffMs / 60000);
+        
+        let timeAgo;
+        if (diffMins < 1) {
+            timeAgo = 'just now';
+        } else if (diffMins === 1) {
+            timeAgo = '1 minute ago';
+        } else if (diffMins < 60) {
+            timeAgo = `${diffMins} minutes ago`;
+        } else {
+            const hours = Math.floor(diffMins / 60);
+            timeAgo = hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+        }
+        
+        syncStatus.textContent = `Last sync: ${timeAgo}`;
+    } else {
+        syncStatus.textContent = 'Last sync: Never';
+    }
 }
 
 // Service Worker and Offline Support
@@ -743,6 +878,10 @@ async function updateDataToGitHub(message = 'Update data') {
         const result = await response.json();
         currentSHA = result.content.sha;
         
+        // Update last sync time
+        AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
+        updateSyncStatusDisplay();
+        
         isSyncing = false;
         hideSyncIndicator();
         
@@ -799,7 +938,7 @@ function hideSyncIndicator() {
     }
 }
 
-function showMessage(message, type = 'error') {
+function showMessage(message, type = 'error', duration = 10000) {
     const messageDiv = document.getElementById('errorMessage');
     if (messageDiv) {
         messageDiv.textContent = message;
@@ -816,7 +955,7 @@ function showMessage(message, type = 'error') {
         messageDiv.style.display = 'block';
         setTimeout(() => {
             messageDiv.style.display = 'none';
-        }, 10000);
+        }, duration);
     }
 }
 
@@ -902,6 +1041,14 @@ async function initializeApp() {
     
     // Initialize WebSocket if enabled
     initializeWebSocket();
+    
+    // Start auto-sync polling
+    startAutoSync();
+    
+    // Update sync status display every 30 seconds
+    setInterval(() => {
+        updateSyncStatusDisplay();
+    }, 30000);
 }
 
 function setupEventListeners() {
