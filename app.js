@@ -814,7 +814,14 @@ async function fetchDataFromGitHub() {
         console.error('Error fetching data from GitHub:', error);
         logError('fetchDataFromGitHub', error);
         hideSyncIndicator();
-        showError('Failed to load data from GitHub. Using local fallback.');
+        
+        // Only show error message if GitHub token is configured
+        // When token is not configured, silent fallback to localStorage is expected
+        if (GITHUB_CONFIG.token) {
+            showError('Failed to load data from GitHub. Using local fallback.');
+        } else {
+            console.log('GitHub token not configured. Using local storage only.');
+        }
         
         // Fallback to localStorage if GitHub fetch fails
         return loadFromLocalStorageFallback();
