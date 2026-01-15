@@ -164,6 +164,8 @@ function startAutoSync() {
     AUTO_SYNC_CONFIG.pollTimer = setInterval(async () => {
         if (isOffline || isSyncing) {
             console.log('[Auto-Sync] Skipping poll (offline or sync in progress)');
+            // Still update the display to show time elapsed
+            updateSyncStatusDisplay();
             return;
         }
         
@@ -171,7 +173,13 @@ function startAutoSync() {
             await checkForRemoteUpdates();
         } catch (error) {
             console.error('[Auto-Sync] Error during auto-sync:', error);
+            // Log error but don't show intrusive notifications for background sync failures
+            // User can check error log if needed
+            logError('autoSync', error);
         }
+        
+        // Update sync status display on every poll cycle
+        updateSyncStatusDisplay();
     }, AUTO_SYNC_CONFIG.intervalMs);
     
     // Also do an initial check after a short delay
@@ -202,17 +210,19 @@ async function checkForRemoteUpdates() {
         const remoteSHA = await checkRemoteSHA();
         
         // If we don't have a current SHA or remote check failed, skip
-        if (!remoteSHA || !currentSHA) {
+        if (!remoteSHA) {
+            console.log('[Auto-Sync] Remote SHA check failed, skipping poll');
+            return;
+        }
+        
+        if (!currentSHA) {
+            console.log('[Auto-Sync] No local SHA available yet, skipping poll');
             return;
         }
         
         // If SHA has changed, remote file was updated
         if (remoteSHA !== currentSHA) {
             console.log('[Auto-Sync] Remote file updated, fetching changes...');
-            
-            // Update last sync time
-            AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
-            updateSyncStatusDisplay();
             
             // Fetch the updated data
             await fetchDataFromGitHub();
@@ -230,6 +240,14 @@ async function checkForRemoteUpdates() {
     } catch (error) {
         console.error('[Auto-Sync] Error checking for remote updates:', error);
     }
+}
+
+/**
+ * Update the last sync timestamp
+ */
+function updateLastSyncTime() {
+    AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
+    updateSyncStatusDisplay();
 }
 
 /**
@@ -879,8 +897,7 @@ async function updateDataToGitHub(message = 'Update data') {
         currentSHA = result.content.sha;
         
         // Update last sync time
-        AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
-        updateSyncStatusDisplay();
+        updateLastSyncTime();
         
         isSyncing = false;
         hideSyncIndicator();
@@ -1042,13 +1059,8 @@ async function initializeApp() {
     // Initialize WebSocket if enabled
     initializeWebSocket();
     
-    // Start auto-sync polling
+    // Start auto-sync polling (includes sync status display updates)
     startAutoSync();
-    
-    // Update sync status display every 30 seconds
-    setInterval(() => {
-        updateSyncStatusDisplay();
-    }, 30000);
 }
 
 function setupEventListeners() {
