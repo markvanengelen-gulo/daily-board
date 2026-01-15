@@ -19,8 +19,8 @@ Thumbs.db
 *.swp
 *.swo
 
-# Backups (keep in repo for now as part of the data retention feature)
-# data_backup_*.json
+# Backups
+data_backup_*.json
 
 # Test files
 /tmp/

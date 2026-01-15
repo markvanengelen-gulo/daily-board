@@ -1,6 +1,6 @@
 # Daily Board
 
-A streamlined daily discipline tracker with cross-device synchronization via GitHub.
+A streamlined daily discipline tracker with **simplified multi-device synchronization** using direct JSON file updates.
 
 ## Features
 
@@ -28,11 +28,14 @@ Track 5 fixed daily habits:
 - Each list can contain multiple items with checkbox tracking
 - Lists are shared across all days (not day-specific)
 
-### Cross-Device Synchronization
-- Sync your data across all devices using GitHub as centralized storage
-- All data is stored in a `data.json` file in your repository
-- Automatic synchronization when configured with a GitHub Personal Access Token
-- Fallback to local storage when offline or not configured
+### Simplified Multi-Device Synchronization ⭐ ENHANCED
+- **Direct JSON file sync** - No complex API dependencies
+- **Automatic polling** - Checks for updates every 30 seconds
+- **Real-time updates** - Changes appear automatically across all devices
+- **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive
+- **Conflict resolution** - Timestamp-based merging with SHA versioning
+- **Offline-first** - Changes queue locally and sync when online
+- See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup
 
 ### Data Retention Policy ✨ NEW
 - Automatically maintains a rolling 10-day window of task history
@@ -81,8 +84,28 @@ To enable cross-device synchronization:
    - The app will automatically fetch the latest data from your repository
    - All changes (tasks, disciplines, lists) will be synced to `data.json`
    - Access your data from any device by setting the same token in localStorage
+   - **Auto-sync checks for updates every 30 seconds** automatically
+   - See "Last sync" indicator at the top to verify sync is working
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
+
+### Multi-Device Setup
+
+To sync across multiple devices (phone, laptop, desktop, etc.):
+
+1. **Configure the same GitHub token** on each device:
+   ```javascript
+   localStorage.setItem('githubToken', 'YOUR_TOKEN_HERE')
+   ```
+
+2. **Automatic synchronization**:
+   - Changes on any device are saved to GitHub immediately
+   - Other devices poll for updates every 30 seconds
+   - Updates appear automatically without manual refresh
+   - "Last sync" indicator shows synchronization status
+
+3. **For alternative cloud storage** (Dropbox, Google Drive):
+   - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed instructions
 
 ### Navigation
 - Use the "Previous" and "Next" buttons to navigate between days
@@ -149,6 +172,52 @@ Without a GitHub token:
 }
 ```
 
+## Simplified Architecture
+
+Daily Board uses a **simplified, API-free architecture** for multi-device synchronization:
+
+### Key Principles
+
+1. **Direct JSON File Storage**
+   - All data stored in a single `data.json` file
+   - No database, no complex backend
+   - Easy to backup, migrate, and understand
+
+2. **Cloud Storage Integration**
+   - Currently uses GitHub as default (with API)
+   - Can be adapted for Dropbox, Google Drive, or any cloud service
+   - File sync services handle the synchronization
+   - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for alternatives
+
+3. **Automatic Synchronization**
+   - **Auto-polling**: Checks for remote updates every 30 seconds
+   - **Real-time updates**: Detects changes and updates UI automatically
+   - **Conflict resolution**: SHA-based detection with timestamp merging
+   - **Visual feedback**: "Last sync" indicator shows sync status
+
+4. **Offline-First Design**
+   - All changes saved to localStorage immediately
+   - Sync queue holds changes when offline
+   - Automatic sync when connection restored
+   - Service worker enables full offline functionality
+
+5. **Multi-Device Support**
+   - Same data accessible from any device
+   - Automatic cross-device synchronization
+   - Optional WebSocket server for instant updates
+   - Tested on desktop, mobile, and tablet
+
+### How It Works
+
+```
+User Action → localStorage (immediate) → Sync Queue → Cloud Storage → Other Devices
+                                            ↓
+                                      Auto-poll detects
+                                      change (30s)
+```
+
+For detailed technical information and alternative cloud storage options, see [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md).
+
 ## Security
 
 - GitHub Personal Access Tokens are stored securely in browser localStorage
@@ -163,6 +232,19 @@ Without a GitHub token:
 - You have complete control over your data
 
 ## New Features Details
+
+### Automatic Multi-Device Synchronization ⭐ NEW
+
+Real-time synchronization across all your devices:
+
+- **Auto-Polling**: Checks for remote updates every 30 seconds automatically
+- **Live Updates**: Changes from other devices appear automatically
+- **Sync Status**: "Last sync" indicator shows when data was last synchronized
+- **No Manual Refresh**: Updates happen in the background without user intervention
+- **Conflict Detection**: Automatically detects and handles concurrent edits
+- **Smart Merging**: Timestamp-based conflict resolution with user prompts
+
+This enables seamless task management across your phone, laptop, desktop, and tablet!
 
 ### Data Retention Policy
 
