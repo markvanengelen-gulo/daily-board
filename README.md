@@ -30,7 +30,7 @@ Track 5 fixed daily habits:
 
 ### Simplified Multi-Device Synchronization ⭐ ENHANCED
 - **Direct JSON file sync** - No complex API dependencies
-- **Automatic polling** - Checks for updates every 30 seconds
+- **Automatic polling** - Checks for updates every 5 seconds
 - **Real-time updates** - Changes appear automatically across all devices
 - **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive
 - **Conflict resolution** - Timestamp-based merging with SHA versioning
@@ -84,7 +84,7 @@ To enable cross-device synchronization:
    - The app will automatically fetch the latest data from your repository
    - All changes (tasks, disciplines, lists) will be synced to `data.json`
    - Access your data from any device by setting the same token in localStorage
-   - **Auto-sync checks for updates every 30 seconds** automatically
+   - **Auto-sync checks for updates every 5 seconds** automatically
    - See "Last sync" indicator at the top to verify sync is working
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
@@ -100,7 +100,7 @@ To sync across multiple devices (phone, laptop, desktop, etc.):
 
 2. **Automatic synchronization**:
    - Changes on any device are saved to GitHub immediately
-   - Other devices poll for updates every 30 seconds
+   - Other devices poll for updates every 5 seconds
    - Updates appear automatically without manual refresh
    - "Last sync" indicator shows synchronization status
 
@@ -190,7 +190,7 @@ Daily Board uses a **simplified, API-free architecture** for multi-device synchr
    - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for alternatives
 
 3. **Automatic Synchronization**
-   - **Auto-polling**: Checks for remote updates every 30 seconds
+   - **Auto-polling**: Checks for remote updates every 5 seconds
    - **Real-time updates**: Detects changes and updates UI automatically
    - **Conflict resolution**: SHA-based detection with timestamp merging
    - **Visual feedback**: "Last sync" indicator shows sync status
@@ -213,7 +213,7 @@ Daily Board uses a **simplified, API-free architecture** for multi-device synchr
 User Action → localStorage (immediate) → Sync Queue → Cloud Storage → Other Devices
                                             ↓
                                       Auto-poll detects
-                                      change (30s)
+                                      change (5s)
 ```
 
 For detailed technical information and alternative cloud storage options, see [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md).
@@ -237,7 +237,7 @@ For detailed technical information and alternative cloud storage options, see [C
 
 Real-time synchronization across all your devices:
 
-- **Auto-Polling**: Checks for remote updates every 30 seconds automatically
+- **Auto-Polling**: Checks for remote updates every 5 seconds automatically
 - **Live Updates**: Changes from other devices appear automatically
 - **Sync Status**: "Last sync" indicator shows when data was last synchronized
 - **No Manual Refresh**: Updates happen in the background without user intervention
