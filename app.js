@@ -1142,12 +1142,6 @@ function setupEventListeners() {
     document.getElementById('prevDay').addEventListener('click', () => changeDate(-1));
     document.getElementById('nextDay').addEventListener('click', () => changeDate(1));
 
-    // Update button - save immediately
-    document.getElementById('updateBtn').addEventListener('click', saveDataImmediately);
-
-    // Refresh button
-    document.getElementById('refreshBtn').addEventListener('click', refreshData);
-
     // Dynamic tasks
     document.getElementById('addTaskBtn').addEventListener('click', addTask);
     document.getElementById('newTaskInput').addEventListener('keypress', (e) => {
@@ -1546,17 +1540,6 @@ function shiftTaskDate(index, direction) {
     loadTasks();
 }
 
-// Save data immediately to GitHub
-async function saveDataImmediately() {
-    try {
-        await updateDataToGitHub('Manual update - save immediately');
-        showMessage('Data saved successfully!', 'success');
-    } catch (error) {
-        console.error('Error saving data:', error);
-        showError('Failed to save data. Please try again.');
-    }
-}
-
 // Tabs/Lists management
 function loadTabs() {
     const container = document.getElementById('tabsContainer');
@@ -1774,33 +1757,6 @@ function downloadData() {
 }
 
 // GitHub Token Configuration Functions
-async function refreshData() {
-    try {
-        // Attempt to write current data to GitHub first
-        try {
-            await updateDataToGitHub('Manual refresh - save current state');
-        } catch (saveError) {
-            console.log('Save during refresh failed, continuing with fetch:', saveError);
-        }
-        
-        // Then fetch the latest data from GitHub
-        await fetchDataFromGitHub();
-        
-        // Update UI with the latest data
-        updateDateDisplay();
-        loadDisciplines();
-        loadTasks();
-        loadTabs();
-        loadCurrentTab();
-        
-        // Show success message
-        showMessage('Data refreshed successfully!', 'success');
-    } catch (error) {
-        console.error('Error refreshing data:', error);
-        showError('Failed to refresh data. Please try again.');
-    }
-}
-
 function updateTokenStatus() {
     const statusText = document.getElementById('tokenStatusText');
     const tokenInput = document.getElementById('githubTokenInput');
