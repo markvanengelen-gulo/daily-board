@@ -1160,6 +1160,9 @@ function setupEventListeners() {
     // Add tab
     document.getElementById('addTabBtn').addEventListener('click', addTab);
     
+    // Sync button
+    document.getElementById('syncBtn').addEventListener('click', syncData);
+    
     // Download button
     document.getElementById('downloadBtn').addEventListener('click', downloadData);
     
@@ -1720,6 +1723,27 @@ function saveListTextarea() {
     const textarea = document.getElementById('listTextarea');
     const content = textarea.value;
     saveListItems(currentTabId, content);
+}
+
+// Sync data to data.json
+async function syncData() {
+    try {
+        // Check if we have a GitHub token configured
+        if (!GITHUB_CONFIG.token) {
+            showError('GitHub token not configured. Please configure your token in the settings to enable sync.');
+            return;
+        }
+        
+        // Trigger sync to GitHub (which saves to data.json)
+        await updateDataToGitHub('Manual sync: Save data to data.json');
+        
+        // Show success message
+        showMessage('✓ Data synced successfully to data.json!', 'success', 3000);
+    } catch (error) {
+        console.error('Error syncing data:', error);
+        logError('syncData', error);
+        showError('Failed to sync data. Please check your connection and try again.');
+    }
 }
 
 // Download data as JSON file
