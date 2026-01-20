@@ -329,6 +329,7 @@ class GoogleDrivePublicSyncProvider extends SyncProvider {
         this.config = {
             // Google Drive file ID extracted from share link
             // Format: https://drive.google.com/file/d/{FILE_ID}/view?usp=sharing
+            // Default file ID from the problem statement: publicly shared data.json for Daily Actions
             fileId: localStorage.getItem('googleDrivePublicFileId') || '1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq',
             // Direct download URL template
             downloadUrlTemplate: 'https://drive.google.com/uc?export=download&id='
@@ -397,15 +398,19 @@ class GoogleDrivePublicSyncProvider extends SyncProvider {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
             
-            const response = await fetch(downloadUrl, {
-                method: 'GET',
-                signal: controller.signal,
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-            
-            clearTimeout(timeoutId);
+            let response;
+            try {
+                response = await fetch(downloadUrl, {
+                    method: 'GET',
+                    signal: controller.signal,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+            } finally {
+                // Always clear the timeout to prevent memory leaks
+                clearTimeout(timeoutId);
+            }
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -415,9 +420,10 @@ class GoogleDrivePublicSyncProvider extends SyncProvider {
             let data;
             try {
                 const text = await response.text();
+                const trimmedText = text.trim();
                 
                 // Check if the response is HTML (Google Drive sometimes returns HTML for access denied)
-                if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                if (trimmedText.startsWith('<!DOCTYPE') || trimmedText.startsWith('<html')) {
                     throw new Error('Received HTML instead of JSON. File may be inaccessible or not shared publicly.');
                 }
                 
