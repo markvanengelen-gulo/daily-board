@@ -17,6 +17,7 @@ const GITHUB_CONFIG = {
 // Initialize sync providers
 let dropboxProvider = null;
 let googleDriveProvider = null;
+let googleDrivePublicProvider = null;
 
 // Initialize providers when DOM is loaded
 function initializeSyncProviders() {
@@ -26,10 +27,13 @@ function initializeSyncProviders() {
     if (typeof GoogleDriveSyncProvider !== 'undefined') {
         googleDriveProvider = new GoogleDriveSyncProvider();
     }
+    if (typeof GoogleDrivePublicSyncProvider !== 'undefined') {
+        googleDrivePublicProvider = new GoogleDrivePublicSyncProvider();
+    }
 }
 
 // Sync mode state
-let syncMode = 'unknown'; // 'local-server', 'dropbox', 'google-drive', 'github', or 'local-only'
+let syncMode = 'unknown'; // 'local-server', 'dropbox', 'google-drive', 'google-drive-public', 'github', or 'local-only'
 
 // Sync mode display constants
 const SYNC_MODE_DISPLAY = {
@@ -44,6 +48,10 @@ const SYNC_MODE_DISPLAY = {
     'google-drive': {
         text: '✓ Sync: Google Drive',
         color: '#4285F4'
+    },
+    'google-drive-public': {
+        text: '✓ Sync: Google Drive (Public File)',
+        color: '#34A853'
     },
     'github': {
         text: '✓ Sync: GitHub API',
@@ -923,7 +931,16 @@ async function determineSyncMode() {
         }
     }
     
-    // Check Google Drive (priority #3)
+    // Check Google Drive Public (priority #3 - no token needed)
+    if (googleDrivePublicProvider) {
+        const drivePublicAvailable = await googleDrivePublicProvider.checkAvailability();
+        if (drivePublicAvailable) {
+            console.log('[Sync] Google Drive Public file configured - using Google Drive Public sync mode');
+            return 'google-drive-public';
+        }
+    }
+    
+    // Check Google Drive (priority #4 - requires token)
     if (googleDriveProvider) {
         const driveAvailable = await googleDriveProvider.checkAvailability();
         if (driveAvailable) {
@@ -932,7 +949,7 @@ async function determineSyncMode() {
         }
     }
     
-    // Check if GitHub token is configured (priority #4)
+    // Check if GitHub token is configured (priority #5)
     if (GITHUB_CONFIG.token) {
         console.log('[Sync] GitHub token configured - using GitHub API mode');
         return 'github';
@@ -1128,6 +1145,67 @@ async function updateDataToGoogleDrive(message = 'Update data') {
 }
 
 /**
+ * Fetch data from Google Drive Public file
+ * @returns {Promise<Object>} The fetched data
+ */
+async function fetchDataFromGoogleDrivePublic() {
+    try {
+        showSyncIndicator('loading');
+        
+        const data = await googleDrivePublicProvider.fetchData();
+        
+        // Ensure the data structure has all required fields
+        const initializedData = initializeDataStructure(data);
+        
+        appData = initializedData;
+        saveToLocalStorage(); // Save to localStorage as backup
+        hideSyncIndicator();
+        updateLastSyncTime();
+        return initializedData;
+    } catch (error) {
+        console.error('Error fetching data from Google Drive Public:', error);
+        hideSyncIndicator();
+        showError(`Failed to load data from Google Drive Public file: ${error.message}`);
+        
+        // Fallback to localStorage if Google Drive fetch fails
+        return loadFromLocalStorageFallback();
+    }
+}
+
+/**
+ * Update data to Google Drive Public file
+ * Note: This is a read-only provider, so this function only logs a warning
+ * @param {string} message - Commit message (not used)
+ * @returns {Promise<void>}
+ */
+async function updateDataToGoogleDrivePublic(message = 'Update data') {
+    try {
+        showSyncIndicator('saving');
+        
+        // Public Google Drive provider is read-only
+        const success = await googleDrivePublicProvider.updateData(appData, message);
+        
+        if (!success) {
+            console.warn('[Google Drive Public] Read-only mode: Data saved to localStorage only');
+            showError('Google Drive Public is read-only. Changes saved locally only.');
+        }
+        
+        hideSyncIndicator();
+        updateLastSyncTime();
+        
+        // Always save to localStorage as this is read-only mode
+        saveToLocalStorage();
+    } catch (error) {
+        console.error('Error in Google Drive Public update:', error);
+        hideSyncIndicator();
+        showError('Failed to process Google Drive Public update.');
+        
+        // Save to localStorage as fallback
+        saveToLocalStorage();
+    }
+}
+
+/**
  * Fetch data from remote source (routes to local server or GitHub based on sync mode)
  * @returns {Promise<Object>} The fetched data
  */
@@ -1143,6 +1221,8 @@ async function fetchData() {
         return await fetchDataFromLocalServer();
     } else if (syncMode === 'dropbox') {
         return await fetchDataFromDropbox();
+    } else if (syncMode === 'google-drive-public') {
+        return await fetchDataFromGoogleDrivePublic();
     } else if (syncMode === 'google-drive') {
         return await fetchDataFromGoogleDrive();
     } else if (syncMode === 'github') {
@@ -1171,6 +1251,8 @@ async function updateData(message = 'Update data') {
         return await updateDataToLocalServer(message);
     } else if (syncMode === 'dropbox') {
         return await updateDataToDropbox(message);
+    } else if (syncMode === 'google-drive-public') {
+        return await updateDataToGoogleDrivePublic(message);
     } else if (syncMode === 'google-drive') {
         return await updateDataToGoogleDrive(message);
     } else if (syncMode === 'github') {

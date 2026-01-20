@@ -6,13 +6,14 @@ Daily Board supports seamless multi-device synchronization using multiple sync m
 
 ## Sync Modes ✨ UPDATED
 
-Daily Board now supports **five automatic sync modes** that are detected automatically in priority order:
+Daily Board now supports **six automatic sync modes** that are detected automatically in priority order:
 
 1. **Local Server** (Priority 1) - No token needed
 2. **Dropbox** (Priority 2) - Cloud storage
-3. **Google Drive** (Priority 3) - Cloud storage
-4. **GitHub** (Priority 4) - Cloud storage
-5. **Local-Only** (Fallback) - No cross-device sync
+3. **Google Drive Public File** (Priority 3) - No token needed, read-only ✨ NEW
+4. **Google Drive** (Priority 4) - Cloud storage, full access
+5. **GitHub** (Priority 5) - Cloud storage
+6. **Local-Only** (Fallback) - No cross-device sync
 
 ### 1. Local Server Sync (Recommended - No Token Needed)
 
@@ -96,7 +97,97 @@ For cloud-based sync with Dropbox:
 - ✅ Automatic file versioning
 - ✅ Easy token management
 
-### 3. Google Drive Sync (Cloud-Based) ✨ NEW
+### 3. Google Drive Public File Sync (Easy - No Token Needed) ✨ NEW
+
+For simple read-only sync from a publicly shared Google Drive file:
+
+**How It Works:**
+- Fetches data from a publicly shared Google Drive JSON file
+- No authentication or token required
+- Perfect for distributing reference data across devices
+- Read-only mode (local changes saved to localStorage only)
+- Automatic sync every 5 seconds with caching
+
+**Setup:**
+
+1. **Create and share a Google Drive JSON file**:
+   - Create or upload a `data.json` file to your Google Drive
+   - Right-click the file and select "Share"
+   - Click "Change to anyone with the link"
+   - Set permission to "Viewer" (or "Editor" if you plan to update it manually)
+   - Click "Copy link" - you'll get something like:
+     `https://drive.google.com/file/d/1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq/view?usp=sharing`
+
+2. **Extract the File ID**:
+   - From the share link, extract the file ID (the part between `/d/` and `/view`)
+   - Example: From `https://drive.google.com/file/d/1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq/view?usp=sharing`
+   - The file ID is: `1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq`
+
+3. **Configure the file ID in the app**:
+   - **Option A** - Using browser console:
+     - Open the app in your browser
+     - Open browser console (F12)
+     - Run: `localStorage.setItem('googleDrivePublicFileId', 'YOUR_FILE_ID_HERE')`
+     - Or use: `googleDrivePublicProvider.setFileId('YOUR_FILE_ID_HERE')`
+     - Refresh the page
+   
+   - **Option B** - Using the helper function:
+     - Open browser console (F12)
+     - Run: `GoogleDrivePublicSyncProvider.extractFileIdFromUrl('YOUR_FULL_SHARE_URL')`
+     - This will return the file ID
+     - Then set it: `googleDrivePublicProvider.setFileId('EXTRACTED_FILE_ID')`
+     - Refresh the page
+
+4. **Verify sync is working**:
+   - The app will show "✓ Sync: Google Drive (Public File)" in green
+   - The app will fetch data from the public file automatically
+   - Changes from the Google Drive file appear within 5 seconds
+   - **Note**: Your local changes are saved to localStorage only (read-only mode)
+
+**Features:**
+- ✅ **No token required** - Just share a file!
+- ✅ **Easy setup** - Just 2 steps
+- ✅ **Free** - No Google Cloud Console setup needed
+- ✅ **Perfect for distribution** - Share task templates with teams
+- ✅ **Caching** - 5-second cache reduces API calls
+- ✅ **Error handling** - Graceful fallback to localStorage
+- ⚠️ **Read-only** - Local changes saved to localStorage only
+
+**Use Cases:**
+- 📋 Distribute task templates to a team
+- 📱 Sync reference lists across personal devices
+- 👨‍👩‍👧‍👦 Share daily goals with family members
+- 📚 Distribute study schedules to students
+- 🏢 Share company-wide task lists
+
+**Example Data Structure:**
+```json
+{
+  "dateEntries": {
+    "2026-01-20": {
+      "disciplines": { "0": true, "1": false, "2": false, "3": false, "4": false },
+      "tasks": [{ "name": "Example task", "completed": false }]
+    }
+  },
+  "tabs": [
+    { "id": "tab_default", "name": "My List" }
+  ],
+  "listItems": {
+    "tab_default": "List content here"
+  }
+}
+```
+
+**Troubleshooting:**
+- If you see "Failed to load data from Google Drive Public file", check:
+  - ✓ File sharing is set to "Anyone with the link"
+  - ✓ File ID is correct
+  - ✓ File contains valid JSON data
+  - ✓ Internet connection is working
+- Clear the cache: `googleDrivePublicProvider.clearCache()`
+- Check errors in browser console
+
+### 4. Google Drive Sync (Cloud-Based - Full Access) ✨ NEW
 
 For cloud-based sync with Google Drive:
 
@@ -147,7 +238,7 @@ For cloud-based sync with Google Drive:
 
 **Note**: Access tokens from OAuth Playground expire after 1 hour by default. For production use, you should implement a full OAuth flow with refresh tokens or use a service account.
 
-### 4. GitHub Sync (Cloud-Based)
+### 5. GitHub Sync (Cloud-Based)
 
 For internet-wide access using GitHub as cloud storage:
 
