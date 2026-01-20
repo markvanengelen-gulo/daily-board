@@ -29,11 +29,14 @@ Track 5 fixed daily habits:
 - Lists are shared across all days (not day-specific)
 
 ### Simplified Multi-Device Synchronization ⭐ ENHANCED
+- **Token-optional sync** - Use local server without any token configuration ✨ NEW
+- **Three sync modes** - Local server, GitHub API, or local-only
+- **Automatic mode detection** - App automatically selects best available sync method
 - **Direct JSON file sync** - No complex API dependencies
 - **Automatic polling** - Checks for updates every 5 seconds
 - **Real-time updates** - Changes appear automatically across all devices
 - **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive
-- **Conflict resolution** - Timestamp-based merging with SHA versioning
+- **Conflict resolution** - Timestamp-based merging with SHA versioning (GitHub mode)
 - **Offline-first** - Changes queue locally and sync when online
 - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup
 
@@ -61,11 +64,43 @@ Track 5 fixed daily habits:
 
 1. Clone or download this repository
 2. Open `index.html` in your web browser
-3. (Optional) Configure GitHub sync for cross-device access
+3. Choose your sync method:
+   - **No Configuration Needed (Recommended)**: Run the local server (`npm install && npm start`) for token-free sync
+   - **GitHub Sync (Advanced)**: Configure a GitHub token for cloud-based sync
+   - **Local-Only Mode**: Use without any sync for single-device access
 
-### Setting Up GitHub Synchronization
+### Sync Modes
 
-To enable cross-device synchronization:
+Daily Board supports three sync modes that are automatically detected:
+
+#### 1. Local Server Sync (Recommended - No Token Needed) ✨ NEW
+
+The easiest way to sync across devices without configuring tokens:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start the local server**:
+   ```bash
+   npm start
+   ```
+   Server runs on `http://localhost:3000`
+
+3. **Open the app**:
+   - Open `index.html` in your browser
+   - The app automatically detects the local server
+   - You'll see "✓ Sync: Local Server (No token needed)" in green
+
+4. **Multi-device sync**:
+   - Open the app on any device on your network
+   - All devices sync through the local server
+   - No GitHub token configuration required!
+
+#### 2. GitHub Sync (Advanced - Token Required)
+
+To enable cross-device synchronization via GitHub:
 
 1. **Create a GitHub Personal Access Token**:
    - Go to [GitHub Settings > Personal Access Tokens](https://github.com/settings/tokens)
@@ -85,13 +120,37 @@ To enable cross-device synchronization:
    - All changes (tasks, disciplines, lists) will be synced to `data.json`
    - Access your data from any device by setting the same token in localStorage
    - **Auto-sync checks for updates every 5 seconds** automatically
-   - See "Last sync" indicator at the top to verify sync is working
+   - You'll see "✓ Sync: GitHub API" in blue
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
+
+#### 3. Local-Only Mode (No Sync)
+
+If neither the local server nor GitHub token is configured:
+- Data is stored only in browser localStorage
+- Works fully offline
+- Data is device-specific (no cross-device sync)
+- You'll see "⚠️ Sync: Local Only" in yellow
 
 ### Multi-Device Setup
 
 To sync across multiple devices (phone, laptop, desktop, etc.):
+
+**Option 1: Local Server Sync (No Token Needed)**
+
+1. **Run the server** on one device (e.g., your main computer):
+   ```bash
+   cd daily-board
+   npm install
+   npm start
+   ```
+
+2. **Access from any device** on the same network:
+   - Open `http://YOUR-COMPUTER-IP:3000` in a browser
+   - Changes sync automatically across all devices
+   - No token configuration needed!
+
+**Option 2: GitHub Sync (With Token)**
 
 1. **Configure the same GitHub token** on each device:
    ```javascript

@@ -1,103 +1,10 @@
 {
   "dateEntries": {
-    "2026-01-05": {
-      "disciplines": {
-        "0": true,
-        "1": true,
-        "2": true,
-        "3": true,
-        "4": true
-      },
-      "tasks": [
-        {
-          "name": "AGLC Databricks prep",
-          "completed": false
-        },
-        {
-          "name": "Call Len",
-          "completed": false
-        },
-        {
-          "name": "Call Alex - Wifi extender",
-          "completed": false
-        },
-        {
-          "name": "Prep eCO assessment review",
-          "completed": false,
-          "priority": true
-        },
-        {
-          "name": "Afwassen",
-          "completed": false
-        },
-        {
-          "name": "Kerst spullen opruimen",
-          "completed": false
-        },
-        {
-          "name": "Chamber emails",
-          "completed": false
-        },
-        {
-          "name": "Kippen sneeuw scheppen",
-          "completed": false
-        },
-        {
-          "name": "Tractor sneeuw",
-          "completed": false
-        }
-      ]
-    },
-    "2026-01-06": {
+    "2026-01-20": {
       "disciplines": {},
       "tasks": [
         {
-          "name": "Call Len",
-          "completed": false
-        },
-        {
-          "name": "Prep CGI client meetings",
-          "completed": false,
-          "priority": true
-        }
-      ]
-    },
-    "2026-01-07": {
-      "disciplines": {
-        "0": true,
-        "1": true,
-        "2": true,
-        "3": true,
-        "4": true
-      },
-      "tasks": [
-        {
-          "name": "AGLC Databricks MVP",
-          "completed": true
-        },
-        {
-          "name": "eCO slides finish & send",
-          "completed": false,
-          "priority": true
-        },
-        {
-          "name": "REEPS Deb email read",
-          "completed": false
-        },
-        {
-          "name": "REEPS Emergency Plan draft",
-          "completed": false
-        },
-        {
-          "name": "WCLC proposal draft",
-          "completed": false
-        },
-        {
-          "name": "Andrea bellen 1 PM",
-          "completed": true
-        },
-        {
-          "name": "Update Trives Finances till today",
+          "name": "Test task - sync without token",
           "completed": false
         }
       ]
