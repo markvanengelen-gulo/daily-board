@@ -4,9 +4,15 @@
 
 Daily Board supports seamless multi-device synchronization using multiple sync methods. This guide explains how to synchronize your task data across multiple devices (phone, laptop, desktop, etc.) with or without cloud storage.
 
-## Sync Modes ✨ NEW
+## Sync Modes ✨ UPDATED
 
-Daily Board now supports **three automatic sync modes** that are detected automatically:
+Daily Board now supports **five automatic sync modes** that are detected automatically in priority order:
+
+1. **Local Server** (Priority 1) - No token needed
+2. **Dropbox** (Priority 2) - Cloud storage
+3. **Google Drive** (Priority 3) - Cloud storage
+4. **GitHub** (Priority 4) - Cloud storage
+5. **Local-Only** (Fallback) - No cross-device sync
 
 ### 1. Local Server Sync (Recommended - No Token Needed)
 
@@ -45,9 +51,103 @@ The easiest and most user-friendly option for cross-device sync:
 - ✅ Automatic conflict handling
 - ✅ Perfect for personal/family use
 
-### 2. GitHub Sync (Cloud-Based)
+### 2. Dropbox Sync (Cloud-Based) ✨ NEW
 
-### 2. GitHub Sync (Cloud-Based)
+For cloud-based sync with Dropbox:
+
+**How It Works:**
+- Stores `data.json` in your Dropbox account at `/daily-board/data.json`
+- Uses Dropbox API for file upload/download
+- Automatic sync every 5 seconds
+- Works from anywhere with internet
+
+**Setup:**
+
+1. **Create a Dropbox App**:
+   - Go to [Dropbox App Console](https://www.dropbox.com/developers/apps)
+   - Click "Create app"
+   - Choose "Scoped access"
+   - Choose "Full Dropbox" or "App folder" access
+   - Give your app a name (e.g., "Daily Board Sync")
+
+2. **Generate an Access Token**:
+   - In your app settings, scroll to "OAuth 2"
+   - Under "Generated access token", click "Generate"
+   - Copy the generated access token
+
+3. **Configure the token in the app**:
+   - Open the app in your browser
+   - Scroll to the top and expand "⚙️ Cloud Sync Configuration"
+   - Find the Dropbox section
+   - Paste your token in the input field
+   - Click "Save Token"
+
+4. **Verify sync is working**:
+   - The app will show "✓ Sync: Dropbox" in blue
+   - Make a change (add a task, check a discipline)
+   - Check your Dropbox folder - you should see `daily-board/data.json`
+   - Open the app on another device with the same token
+   - Changes should appear automatically within 5 seconds
+
+**Features:**
+- ✅ Access from anywhere with internet
+- ✅ 2GB free storage (Basic plan)
+- ✅ Native mobile app support
+- ✅ Automatic file versioning
+- ✅ Easy token management
+
+### 3. Google Drive Sync (Cloud-Based) ✨ NEW
+
+For cloud-based sync with Google Drive:
+
+**How It Works:**
+- Stores `daily-board-data.json` in your Google Drive
+- Uses Google Drive API v3 for file operations
+- Automatic sync every 5 seconds
+- Works from anywhere with internet
+
+**Setup:**
+
+1. **Enable Google Drive API**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Create a new project or select existing
+   - Enable "Google Drive API" for your project
+   - Go to "Credentials" → "Create Credentials" → "OAuth 2.0 Client ID"
+   - Configure OAuth consent screen if needed
+   - Choose "Web application" as application type
+   - Add authorized redirect URIs if needed
+
+2. **Get an Access Token**:
+   - Use [OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
+   - In Step 1, select "Drive API v3" and check the scope: `https://www.googleapis.com/auth/drive.file`
+   - Click "Authorize APIs"
+   - In Step 2, click "Exchange authorization code for tokens"
+   - Copy the "Access token"
+
+3. **Configure the token in the app**:
+   - Open the app in your browser
+   - Scroll to the top and expand "⚙️ Cloud Sync Configuration"
+   - Find the Google Drive section
+   - Paste your token in the input field
+   - Click "Save Token"
+
+4. **Verify sync is working**:
+   - The app will show "✓ Sync: Google Drive" in blue
+   - Make a change (add a task, check a discipline)
+   - Check your Google Drive - you should see `daily-board-data.json`
+   - Open the app on another device with the same token
+   - Changes should appear automatically within 5 seconds
+
+**Features:**
+- ✅ Access from anywhere with internet
+- ✅ 15GB free storage
+- ✅ Integration with Google ecosystem
+- ✅ Built-in versioning and backup
+- ✅ Mobile app support
+
+**Note**: Access tokens from OAuth Playground expire after 1 hour by default. For production use, you should implement a full OAuth flow with refresh tokens or use a service account.
+
+### 4. GitHub Sync (Cloud-Based)
 
 For internet-wide access using GitHub as cloud storage:
 
@@ -90,7 +190,7 @@ For internet-wide access using GitHub as cloud storage:
 - ✅ Works across different networks
 - ✅ Version history in Git
 
-### 3. Local-Only Mode (No Sync)
+### 5. Local-Only Mode (No Sync)
 
 When neither local server nor GitHub token is configured:
 
@@ -114,12 +214,15 @@ When neither local server nor GitHub token is configured:
 The app automatically detects the best available sync mode in this priority order:
 
 1. **Local Server**: If server is running on `http://localhost:3000`
-2. **GitHub**: If a GitHub token is configured in localStorage
-3. **Local-Only**: If neither server nor token is available
+2. **Dropbox**: If a Dropbox access token is configured in localStorage
+3. **Google Drive**: If a Google Drive access token is configured in localStorage
+4. **GitHub**: If a GitHub token is configured in localStorage
+5. **Local-Only**: If no sync method is available
 
 You can switch modes by:
 - Starting/stopping the local server
-- Adding/removing a GitHub token (via browser console)
+- Adding/removing cloud storage tokens via the configuration UI
+- Priority is automatically managed (Local Server > Dropbox > Google Drive > GitHub > Local-Only)
 
 ### Multi-Device Setup (Updated)
 
@@ -152,71 +255,25 @@ To use Daily Board across multiple devices, choose your preferred sync method:
    - Conflicts are automatically resolved using last-write-wins with SHA versioning
    - Offline changes are queued and synced when connection is restored
 
-## Alternative Cloud Storage Options
+## Cloud Storage Implementation Status ✨ UPDATED
 
-While GitHub is the default and recommended option, you can integrate other cloud storage services:
+Daily Board now supports multiple cloud storage providers out of the box:
 
-### Option 1: Dropbox Integration
+### ✅ Fully Implemented
+1. **Local Server** - Token-free sync for local networks
+2. **Dropbox** - Cloud sync with Dropbox API ✨ NEW
+3. **Google Drive** - Cloud sync with Google Drive API v3 ✨ NEW
+4. **GitHub** - Cloud sync with GitHub Contents API
 
-**Concept**: Store `data.json` in a Dropbox folder and use Dropbox API for sync.
+All cloud providers support:
+- Automatic sync every 5 seconds
+- Offline support with local caching
+- Cross-device synchronization
+- Easy token management via UI
 
-**Implementation Steps**:
+### Alternative Sync Methods
 
-1. **Modify app.js** to use Dropbox API instead of GitHub API
-2. **Key changes needed**:
-   - Replace `GITHUB_CONFIG` with `DROPBOX_CONFIG`
-   - Update `fetchDataFromGitHub()` to use Dropbox API endpoints
-   - Update `updateDataToGitHub()` to use Dropbox file upload
-   - Implement Dropbox OAuth for authentication
-
-3. **Dropbox API Endpoints**:
-   ```javascript
-   // Download file
-   POST https://content.dropboxapi.com/2/files/download
-   
-   // Upload file
-   POST https://content.dropboxapi.com/2/files/upload
-   
-   // Get file metadata
-   POST https://api.dropboxapi.com/2/files/get_metadata
-   ```
-
-4. **Benefits**:
-   - Native mobile app support
-   - Larger storage (2GB free tier)
-   - Better file versioning
-
-### Option 2: Google Drive Integration
-
-**Concept**: Store `data.json` in Google Drive and use Drive API for sync.
-
-**Implementation Steps**:
-
-1. **Enable Google Drive API** in Google Cloud Console
-2. **Modify app.js** to use Google Drive API
-3. **Key changes needed**:
-   - Replace `GITHUB_CONFIG` with `DRIVE_CONFIG`
-   - Implement OAuth 2.0 authentication
-   - Use Drive API v3 endpoints
-
-4. **Google Drive API Endpoints**:
-   ```javascript
-   // Get file
-   GET https://www.googleapis.com/drive/v3/files/{fileId}?alt=media
-   
-   // Update file
-   PATCH https://www.googleapis.com/upload/drive/v3/files/{fileId}
-   
-   // Get file metadata
-   GET https://www.googleapis.com/drive/v3/files/{fileId}
-   ```
-
-5. **Benefits**:
-   - 15GB free storage
-   - Integration with Google ecosystem
-   - Built-in versioning and backup
-
-### Option 3: Local File System (Desktop)
+### Local File System Sync (Desktop)
 
 For desktop applications, you can use local file system sync:
 
@@ -234,19 +291,32 @@ For desktop applications, you can use local file system sync:
 
 ## Conflict Resolution
 
-Daily Board implements robust conflict resolution:
+Daily Board implements robust conflict resolution across all sync modes:
 
-### Current Strategy (GitHub)
+### Current Strategy
 
+**For GitHub (SHA-based)**:
 1. **SHA-based Detection**: Before saving, checks if remote SHA matches local SHA
 2. **Conflict Dialog**: If conflict detected, prompts user to:
    - Fetch latest data and merge manually (recommended)
    - Force save local changes (overwrites remote)
 
-3. **Timestamp-based Merging**: When auto-syncing detects changes:
-   - Fetches remote data automatically
-   - Updates UI with latest data
-   - Shows notification: "📥 Data synchronized from remote"
+**For Dropbox and Google Drive (Revision-based)**:
+1. **Last-write-wins**: Latest changes overwrite previous data
+2. **Auto-sync Detection**: Fetches remote data every 5 seconds
+3. **UI Updates**: Automatically refreshes when remote changes detected
+
+**For Local Server (Real-time)**:
+1. **Immediate sync**: Changes saved immediately to shared file
+2. **Auto-polling**: Checks for updates every 5 seconds
+3. **Conflict prevention**: Real-time sync minimizes conflicts
+
+**For All Modes**:
+- **Timestamp-based Merging**: When auto-syncing detects changes:
+  - Fetches remote data automatically
+  - Updates UI with latest data
+  - Shows notification: "📥 Data synchronized from remote"
+- **Offline Support**: Changes queue locally and sync when connection restored
 
 ### Enhanced Conflict Resolution (Future)
 
@@ -448,11 +518,12 @@ If you want to switch from GitHub to another service:
 Daily Board provides a **simplified, flexible architecture** for multi-device synchronization:
 
 - ✅ **No complex backend** - direct JSON file sync
-- ✅ **Multiple cloud options** - GitHub (default), Dropbox, Google Drive
-- ✅ **Automatic sync** - polls every 30 seconds for changes
+- ✅ **Multiple cloud options** - Local Server, Dropbox, Google Drive, GitHub ✨ UPDATED
+- ✅ **Automatic sync** - polls every 5 seconds for changes ✨ UPDATED
 - ✅ **Offline support** - queue changes and sync when online
-- ✅ **Conflict resolution** - SHA-based detection with manual merge option
+- ✅ **Conflict resolution** - provider-specific strategies (SHA-based for GitHub, last-write-wins for cloud storage)
 - ✅ **Real-time collaboration** - optional WebSocket server
-- ✅ **Secure** - your data, your repository, your control
+- ✅ **Secure** - your data, your storage, your control
+- ✅ **Easy setup** - UI-based token configuration ✨ NEW
 
 For issues or questions, check the error log or GitHub repository issues page.
