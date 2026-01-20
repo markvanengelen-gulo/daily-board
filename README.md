@@ -30,12 +30,12 @@ Track 5 fixed daily habits:
 
 ### Simplified Multi-Device Synchronization ⭐ ENHANCED
 - **Token-optional sync** - Use local server without any token configuration ✨ NEW
-- **Three sync modes** - Local server, GitHub API, or local-only
+- **Multiple sync modes** - Local server, Dropbox, Google Drive (public files), GitHub API, or local-only
 - **Automatic mode detection** - App automatically selects best available sync method
 - **Direct JSON file sync** - No complex API dependencies
 - **Automatic polling** - Checks for updates every 5 seconds
 - **Real-time updates** - Changes appear automatically across all devices
-- **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive
+- **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive (including public shared files)
 - **Conflict resolution** - Timestamp-based merging with SHA versioning (GitHub mode)
 - **Offline-first** - Changes queue locally and sync when online
 - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup
@@ -66,12 +66,14 @@ Track 5 fixed daily habits:
 2. Open `index.html` in your web browser
 3. Choose your sync method:
    - **No Configuration Needed (Recommended)**: Run the local server (`npm install && npm start`) for token-free sync
+   - **Google Drive Public File Sync (Easy)**: Use a publicly shared Google Drive JSON file for read-only sync ✨ NEW
+   - **Dropbox/Google Drive Sync (Advanced)**: Configure cloud storage tokens for full sync
    - **GitHub Sync (Advanced)**: Configure a GitHub token for cloud-based sync
    - **Local-Only Mode**: Use without any sync for single-device access
 
 ### Sync Modes
 
-Daily Board supports three sync modes that are automatically detected:
+Daily Board supports multiple sync modes that are automatically detected:
 
 #### 1. Local Server Sync (Recommended - No Token Needed) ✨ NEW
 
@@ -98,7 +100,51 @@ The easiest way to sync across devices without configuring tokens:
    - All devices sync through the local server
    - No GitHub token configuration required!
 
-#### 2. GitHub Sync (Advanced - Token Required)
+#### 2. Google Drive Public File Sync (Easy - No Token Needed) ✨ NEW
+
+Sync your data using a publicly shared Google Drive JSON file. This is ideal for read-only scenarios where you want to sync data from a central source:
+
+1. **Create a Google Drive JSON file**:
+   - Upload a `data.json` file to Google Drive
+   - Right-click the file and select "Share"
+   - Set sharing to "Anyone with the link" with at least "Viewer" access
+   - Copy the share link (e.g., `https://drive.google.com/file/d/FILE_ID/view?usp=sharing`)
+
+2. **Configure the File ID**:
+   - Extract the file ID from your share link (the part between `/d/` and `/view`)
+   - For example, from `https://drive.google.com/file/d/1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq/view?usp=sharing`
+   - The file ID is: `1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq`
+   - Open your browser's developer console (F12)
+   - Run: `localStorage.setItem('googleDrivePublicFileId', 'YOUR_FILE_ID_HERE')`
+   - Or use the helper: `googleDrivePublicProvider.setFileId('YOUR_FILE_ID_HERE')`
+   - Refresh the page
+
+3. **Start Syncing**:
+   - The app will automatically fetch data from the public Google Drive file
+   - You'll see "✓ Sync: Google Drive (Public File)" in green
+   - **Auto-sync checks for updates every 5 seconds** automatically
+   - **Note**: This is a read-only mode - local changes are saved to localStorage only
+
+4. **Extract File ID from URL** (helper function):
+   - You can use the built-in helper to extract the file ID from a share URL:
+   - Run in console: `GoogleDrivePublicSyncProvider.extractFileIdFromUrl('YOUR_SHARE_URL')`
+
+**Benefits**:
+- ✅ No authentication token needed
+- ✅ Easy to set up - just share a file
+- ✅ Perfect for syncing reference data across devices
+- ⚠️ Read-only mode (changes saved locally only)
+
+**Use Cases**:
+- Distribute task templates to a team
+- Sync reference lists across devices
+- Share daily goals with family members
+
+#### 3. Dropbox/Google Drive Sync (Advanced - Token Required)
+
+For full read/write sync with Dropbox or Google Drive, see the [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup instructions.
+
+#### 4. GitHub Sync (Advanced - Token Required)
 
 To enable cross-device synchronization via GitHub:
 
@@ -124,7 +170,7 @@ To enable cross-device synchronization via GitHub:
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
 
-#### 3. Local-Only Mode (No Sync)
+#### 5. Local-Only Mode (No Sync)
 
 If neither the local server nor GitHub token is configured:
 - Data is stored only in browser localStorage
