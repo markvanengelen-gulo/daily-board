@@ -17,6 +17,26 @@ const GITHUB_CONFIG = {
 // Sync mode state
 let syncMode = 'unknown'; // 'local-server', 'github', or 'local-only'
 
+// Sync mode display constants
+const SYNC_MODE_DISPLAY = {
+    'local-server': {
+        text: '✓ Sync: Local Server (No token needed)',
+        color: '#28a745'
+    },
+    'github': {
+        text: '✓ Sync: GitHub API',
+        color: '#007bff'
+    },
+    'local-only': {
+        text: '⚠️ Sync: Local Only (No cross-device sync)',
+        color: '#ffc107'
+    },
+    'unknown': {
+        text: 'Sync: Detecting...',
+        color: '#666'
+    }
+};
+
 // Data state
 let appData = {
     dateEntries: {},
@@ -256,19 +276,28 @@ async function checkForRemoteUpdates() {
         // For local-server mode, we'll simply fetch and compare data
         // For GitHub mode, we use SHA-based detection
         if (syncMode === 'local-server') {
-            // For local server, we can simply fetch the data periodically
-            // The server returns the latest version
+            // For local server, fetch data and compare with current
             console.log('[Auto-Sync] Checking for updates from local server...');
+            
+            // Store current data for comparison
+            const previousDataString = JSON.stringify(appData);
+            
             await fetchDataFromLocalServer();
             
-            // Update UI with the latest data
-            updateDateDisplay();
-            loadDisciplines();
-            loadTasks();
-            loadTabs();
-            loadCurrentTab();
-            
-            console.log('[Auto-Sync] Data refreshed from local server');
+            // Check if data actually changed
+            const newDataString = JSON.stringify(appData);
+            if (previousDataString !== newDataString) {
+                // Update UI only if data changed
+                updateDateDisplay();
+                loadDisciplines();
+                loadTasks();
+                loadTabs();
+                loadCurrentTab();
+                
+                console.log('[Auto-Sync] Data changed - UI refreshed from local server');
+            } else {
+                console.log('[Auto-Sync] No changes detected from local server');
+            }
         } else if (syncMode === 'github') {
             const remoteSHA = await checkRemoteSHA();
             
@@ -321,29 +350,9 @@ function updateSyncModeDisplay() {
     const syncModeElement = document.getElementById('syncMode');
     if (!syncModeElement) return;
     
-    let displayText = '';
-    let color = '#666';
-    
-    switch (syncMode) {
-        case 'local-server':
-            displayText = '✓ Sync: Local Server (No token needed)';
-            color = '#28a745';
-            break;
-        case 'github':
-            displayText = '✓ Sync: GitHub API';
-            color = '#007bff';
-            break;
-        case 'local-only':
-            displayText = '⚠️ Sync: Local Only (No cross-device sync)';
-            color = '#ffc107';
-            break;
-        default:
-            displayText = 'Sync: Detecting...';
-            color = '#666';
-    }
-    
-    syncModeElement.textContent = displayText;
-    syncModeElement.style.color = color;
+    const config = SYNC_MODE_DISPLAY[syncMode] || SYNC_MODE_DISPLAY['unknown'];
+    syncModeElement.textContent = config.text;
+    syncModeElement.style.color = config.color;
 }
 
 /**
