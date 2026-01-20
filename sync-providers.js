@@ -188,8 +188,10 @@ class GoogleDriveSyncProvider extends SyncProvider {
     }
 
     async findOrCreateFile() {
-        // Search for existing file
-        const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='${this.config.fileName}' and '${this.config.folderId}' in parents and trashed=false&fields=files(id,name)`;
+        // Search for existing file (escape query parameters to prevent injection)
+        const escapedFileName = this.config.fileName.replace(/'/g, "\\'");
+        const escapedFolderId = this.config.folderId.replace(/'/g, "\\'");
+        const searchUrl = `https://www.googleapis.com/drive/v3/files?q=name='${escapedFileName}' and '${escapedFolderId}' in parents and trashed=false&fields=files(id,name)`;
         
         const searchResponse = await fetch(searchUrl, {
             headers: {
