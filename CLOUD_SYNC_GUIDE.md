@@ -2,36 +2,64 @@
 
 ## Overview
 
-Daily Board supports seamless multi-device synchronization using cloud storage services. This guide explains how to synchronize your task data across multiple devices (phone, laptop, desktop, etc.) using direct JSON file updates through various cloud storage providers.
+Daily Board supports seamless multi-device synchronization using multiple sync methods. This guide explains how to synchronize your task data across multiple devices (phone, laptop, desktop, etc.) with or without cloud storage.
 
-## Synchronization Architecture
+## Sync Modes ✨ NEW
 
-The application uses a **simplified, API-free architecture** that relies on direct JSON file synchronization:
+Daily Board now supports **three automatic sync modes** that are detected automatically:
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌─────────────┐
-│   Device 1  │────▶│  Cloud Storage   │◀────│   Device 2  │
-│  (Desktop)  │     │  (GitHub/Dropbox)│     │   (Phone)   │
-└─────────────┘     └──────────────────┘     └─────────────┘
-       │                     │                        │
-       └─────────────────────┴────────────────────────┘
-              Automatic sync via data.json
-```
+### 1. Local Server Sync (Recommended - No Token Needed)
 
-## Current Implementation: GitHub Sync
+The easiest and most user-friendly option for cross-device sync:
 
-### How It Works
+**How It Works:**
+- Runs a local Node.js server that manages data.json
+- No GitHub token or cloud service configuration needed
+- Works on your local network
+- Perfect for home/office use
 
-Daily Board currently uses **GitHub** as the cloud storage backend with the following features:
+**Setup:**
+
+1. **Install dependencies** (first time only):
+   ```bash
+   npm install
+   ```
+
+2. **Start the server**:
+   ```bash
+   npm start
+   ```
+   Server runs on `http://localhost:3000`
+
+3. **Access from devices**:
+   - Same device: Open `index.html` in browser
+   - Other devices: Navigate to `http://YOUR-SERVER-IP:3000`
+   - App automatically detects and uses local server
+   - No token configuration needed!
+
+**Features:**
+- ✅ No GitHub token required
+- ✅ Real-time sync via WebSocket
+- ✅ REST API fallback
+- ✅ Works offline (data cached locally)
+- ✅ Automatic conflict handling
+- ✅ Perfect for personal/family use
+
+### 2. GitHub Sync (Cloud-Based)
+
+### 2. GitHub Sync (Cloud-Based)
+
+For internet-wide access using GitHub as cloud storage:
+
+**How It Works:**
 
 1. **Direct JSON File Storage**: All data is stored in `data.json` in your repository
 2. **Automatic Sync**: Changes are automatically saved to GitHub
 3. **Conflict Resolution**: SHA-based versioning detects and handles conflicts
-4. **Auto-Polling**: Checks for remote updates every 30 seconds
+4. **Auto-Polling**: Checks for remote updates every 5 seconds
 5. **Offline Support**: Changes queue locally when offline and sync when online
-6. **Real-time Updates**: Optional WebSocket server for instant sync
 
-### Setup GitHub Sync
+**Setup:**
 
 1. **Fork or clone this repository** to your GitHub account
 
@@ -50,13 +78,69 @@ Daily Board currently uses **GitHub** as the cloud storage backend with the foll
 
 4. **Verify sync is working**:
    - Make a change (add a task, check a discipline)
+   - You'll see "✓ Sync: GitHub API" in blue
    - Check the "Last sync" indicator at the top
    - Open the app on another device with the same token
-   - Changes should appear automatically within 30 seconds
+   - Changes should appear automatically within 5 seconds
 
-### Multi-Device Setup
+**Features:**
+- ✅ Access from anywhere with internet
+- ✅ Automatic backups to GitHub
+- ✅ SHA-based conflict detection
+- ✅ Works across different networks
+- ✅ Version history in Git
 
-To use Daily Board across multiple devices:
+### 3. Local-Only Mode (No Sync)
+
+When neither local server nor GitHub token is configured:
+
+**How It Works:**
+- All data stored in browser localStorage only
+- No cross-device synchronization
+- Perfect for single-device use
+- Zero configuration needed
+
+**When To Use:**
+- Single device usage
+- Privacy-focused (data never leaves your device)
+- No network access needed
+- Quick testing/demo
+
+**Indicator:**
+- You'll see "⚠️ Sync: Local Only (No cross-device sync)" in yellow
+
+## Sync Mode Detection
+
+The app automatically detects the best available sync mode in this priority order:
+
+1. **Local Server**: If server is running on `http://localhost:3000`
+2. **GitHub**: If a GitHub token is configured in localStorage
+3. **Local-Only**: If neither server nor token is available
+
+You can switch modes by:
+- Starting/stopping the local server
+- Adding/removing a GitHub token (via browser console)
+
+### Multi-Device Setup (Updated)
+
+To use Daily Board across multiple devices, choose your preferred sync method:
+
+**Option 1: Local Server Sync (Easiest - No Token Needed)**
+
+1. **Run the server** on one device (e.g., your main computer):
+   ```bash
+   cd daily-board
+   npm install
+   npm start
+   ```
+
+2. **Access from any device** on the same network:
+   - Find your server's IP address (e.g., `192.168.1.100`)
+   - Open `http://YOUR-SERVER-IP:3000` in a browser
+   - Changes sync automatically across all devices
+   - No token configuration needed!
+
+**Option 2: GitHub Sync (Internet-Wide Access)**
 
 1. **Set up the same GitHub token** on each device:
    ```javascript
@@ -64,7 +148,7 @@ To use Daily Board across multiple devices:
    ```
 
 2. **All devices will sync automatically**:
-   - Changes on Device A → Saved to GitHub → Detected by Device B within 30 seconds
+   - Changes on Device A → Saved to GitHub → Detected by Device B within 5 seconds
    - Conflicts are automatically resolved using last-write-wins with SHA versioning
    - Offline changes are queued and synced when connection is restored
 
