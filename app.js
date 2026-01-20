@@ -1,3 +1,10 @@
+// Local Server API Configuration (for token-less sync)
+const LOCAL_SERVER_CONFIG = {
+    enabled: true, // Try local server first by default
+    url: 'http://localhost:3000',
+    apiPath: '/api/data'
+};
+
 // GitHub API Configuration
 const GITHUB_CONFIG = {
     owner: 'markvanengelen-gulo',
@@ -6,6 +13,9 @@ const GITHUB_CONFIG = {
     dataPath: 'data.json',
     token: localStorage.getItem('githubToken') || ''
 };
+
+// Sync mode state
+let syncMode = 'unknown'; // 'local-server', 'github', or 'local-only'
 
 // Data state
 let appData = {
@@ -134,14 +144,14 @@ function schedulePeriodicCleanup() {
     const removedCount = cleanupOldEntries();
     if (removedCount > 0) {
         // Save changes if entries were removed
-        updateDataToGitHub('Automatic cleanup: removed old entries outside retention window');
+        updateData('Automatic cleanup: removed old entries outside retention window');
     }
     
     // Schedule cleanup every hour (3600000 ms)
     setInterval(() => {
         const count = cleanupOldEntries();
         if (count > 0) {
-            updateDataToGitHub('Automatic cleanup: removed old entries outside retention window');
+            updateData('Automatic cleanup: removed old entries outside retention window');
         }
     }, 3600000); // 1 hour
 }
@@ -158,12 +168,13 @@ function startAutoSync() {
         return;
     }
     
-    if (!GITHUB_CONFIG.token) {
-        console.log('[Auto-Sync] GitHub token not configured, skipping auto-sync');
+    // Auto-sync works with local server or GitHub, but not in local-only mode
+    if (syncMode === 'local-only') {
+        console.log('[Auto-Sync] Local-only mode - auto-sync not available');
         return;
     }
     
-    console.log(`[Auto-Sync] Starting automatic sync polling (interval: ${AUTO_SYNC_CONFIG.intervalMs}ms)`);
+    console.log(`[Auto-Sync] Starting automatic sync polling (interval: ${AUTO_SYNC_CONFIG.intervalMs}ms) in ${syncMode} mode`);
     
     // Clear any existing timer
     if (AUTO_SYNC_CONFIG.pollTimer) {
@@ -242,25 +253,13 @@ function stopAutoSync() {
  */
 async function checkForRemoteUpdates() {
     try {
-        const remoteSHA = await checkRemoteSHA();
-        
-        // If we don't have a current SHA or remote check failed, skip
-        if (!remoteSHA) {
-            console.log('[Auto-Sync] Remote SHA check failed, skipping poll');
-            return;
-        }
-        
-        if (!currentSHA) {
-            console.log('[Auto-Sync] No local SHA available yet, skipping poll');
-            return;
-        }
-        
-        // If SHA has changed, remote file was updated
-        if (remoteSHA !== currentSHA) {
-            console.log('[Auto-Sync] Remote file updated, fetching changes...');
-            
-            // Fetch the updated data
-            await fetchDataFromGitHub();
+        // For local-server mode, we'll simply fetch and compare data
+        // For GitHub mode, we use SHA-based detection
+        if (syncMode === 'local-server') {
+            // For local server, we can simply fetch the data periodically
+            // The server returns the latest version
+            console.log('[Auto-Sync] Checking for updates from local server...');
+            await fetchDataFromLocalServer();
             
             // Update UI with the latest data
             updateDateDisplay();
@@ -269,8 +268,38 @@ async function checkForRemoteUpdates() {
             loadTabs();
             loadCurrentTab();
             
-            // Show notification
-            showMessage('📥 Data synchronized from remote', 'success', 3000);
+            console.log('[Auto-Sync] Data refreshed from local server');
+        } else if (syncMode === 'github') {
+            const remoteSHA = await checkRemoteSHA();
+            
+            // If we don't have a current SHA or remote check failed, skip
+            if (!remoteSHA) {
+                console.log('[Auto-Sync] Remote SHA check failed, skipping poll');
+                return;
+            }
+            
+            if (!currentSHA) {
+                console.log('[Auto-Sync] No local SHA available yet, skipping poll');
+                return;
+            }
+            
+            // If SHA has changed, remote file was updated
+            if (remoteSHA !== currentSHA) {
+                console.log('[Auto-Sync] Remote file updated, fetching changes...');
+                
+                // Fetch the updated data
+                await fetchDataFromGitHub();
+                
+                // Update UI with the latest data
+                updateDateDisplay();
+                loadDisciplines();
+                loadTasks();
+                loadTabs();
+                loadCurrentTab();
+                
+                // Show notification
+                showMessage('📥 Data synchronized from remote', 'success', 3000);
+            }
         }
     } catch (error) {
         console.error('[Auto-Sync] Error checking for remote updates:', error);
@@ -283,6 +312,38 @@ async function checkForRemoteUpdates() {
 function updateLastSyncTime() {
     AUTO_SYNC_CONFIG.lastSyncTime = new Date().toISOString();
     updateSyncStatusDisplay();
+}
+
+/**
+ * Update the sync mode display in the UI
+ */
+function updateSyncModeDisplay() {
+    const syncModeElement = document.getElementById('syncMode');
+    if (!syncModeElement) return;
+    
+    let displayText = '';
+    let color = '#666';
+    
+    switch (syncMode) {
+        case 'local-server':
+            displayText = '✓ Sync: Local Server (No token needed)';
+            color = '#28a745';
+            break;
+        case 'github':
+            displayText = '✓ Sync: GitHub API';
+            color = '#007bff';
+            break;
+        case 'local-only':
+            displayText = '⚠️ Sync: Local Only (No cross-device sync)';
+            color = '#ffc107';
+            break;
+        default:
+            displayText = 'Sync: Detecting...';
+            color = '#666';
+    }
+    
+    syncModeElement.textContent = displayText;
+    syncModeElement.style.color = color;
 }
 
 /**
@@ -446,7 +507,7 @@ async function processPendingSyncQueue() {
         try {
             // Use the most recent data (from the last queue item)
             appData = item.data;
-            await updateDataToGitHub(item.operation);
+            await updateData(item.operation);
             console.log('[App] Synced:', item.operation);
         } catch (error) {
             console.error('[App] Failed to sync queued operation:', error);
@@ -757,6 +818,177 @@ function initializeDataStructure(data) {
         data.dateEntries = {};
     }
     return data;
+}
+
+/**
+ * Check if local server is available
+ * @returns {Promise<boolean>} True if local server is available
+ */
+async function isLocalServerAvailable() {
+    if (!LOCAL_SERVER_CONFIG.enabled) {
+        return false;
+    }
+    
+    try {
+        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}/api/health`, {
+            method: 'GET',
+            signal: AbortSignal.timeout(2000) // 2 second timeout
+        });
+        return response.ok;
+    } catch (error) {
+        // Server not available
+        return false;
+    }
+}
+
+/**
+ * Determine the active sync mode
+ * @returns {Promise<string>} 'local-server', 'github', or 'local-only'
+ */
+async function determineSyncMode() {
+    // Check local server first (no token needed)
+    const serverAvailable = await isLocalServerAvailable();
+    if (serverAvailable) {
+        console.log('[Sync] Local server available - using token-free sync mode');
+        return 'local-server';
+    }
+    
+    // Check if GitHub token is configured
+    if (GITHUB_CONFIG.token) {
+        console.log('[Sync] GitHub token configured - using GitHub API mode');
+        return 'github';
+    }
+    
+    // Fall back to local-only mode
+    console.log('[Sync] No server or token - using local-only mode');
+    return 'local-only';
+}
+
+/**
+ * Fetch data from local server
+ * @returns {Promise<Object>} The fetched data
+ */
+async function fetchDataFromLocalServer() {
+    try {
+        showSyncIndicator('loading');
+        
+        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}${LOCAL_SERVER_CONFIG.apiPath}`, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to fetch from local server: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Ensure the data structure has all required fields
+        const initializedData = initializeDataStructure(data);
+        
+        appData = initializedData;
+        hideSyncIndicator();
+        return initializedData;
+    } catch (error) {
+        console.error('Error fetching data from local server:', error);
+        hideSyncIndicator();
+        showError('Failed to load data from local server. Using local fallback.');
+        
+        // Fallback to localStorage if local server fetch fails
+        return loadFromLocalStorageFallback();
+    }
+}
+
+/**
+ * Update data to local server
+ * @param {string} message - Commit message (not used for local server, kept for API compatibility)
+ * @returns {Promise<void>}
+ */
+async function updateDataToLocalServer(message = 'Update data') {
+    try {
+        showSyncIndicator('saving');
+        
+        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}${LOCAL_SERVER_CONFIG.apiPath}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(appData)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to update local server: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        
+        // Update last sync time
+        updateLastSyncTime();
+        
+        hideSyncIndicator();
+        
+        // Also save to localStorage as backup
+        saveToLocalStorage();
+        
+        console.log('[Sync] Data saved to local server successfully');
+    } catch (error) {
+        console.error('Error updating data to local server:', error);
+        hideSyncIndicator();
+        showError('Failed to save data to local server. Changes saved locally.');
+        
+        // Save to localStorage as fallback
+        saveToLocalStorage();
+    }
+}
+
+/**
+ * Fetch data from remote source (routes to local server or GitHub based on sync mode)
+ * @returns {Promise<Object>} The fetched data
+ */
+async function fetchData() {
+    // Determine sync mode if not already set
+    if (syncMode === 'unknown') {
+        syncMode = await determineSyncMode();
+        updateSyncModeDisplay();
+    }
+    
+    // Route to appropriate sync method
+    if (syncMode === 'local-server') {
+        return await fetchDataFromLocalServer();
+    } else if (syncMode === 'github') {
+        return await fetchDataFromGitHub();
+    } else {
+        // Local-only mode - load from localStorage
+        console.log('[Sync] Local-only mode - loading from localStorage');
+        return loadFromLocalStorageFallback();
+    }
+}
+
+/**
+ * Update data to remote source (routes to local server or GitHub based on sync mode)
+ * @param {string} message - Commit message
+ * @returns {Promise<void>}
+ */
+async function updateData(message = 'Update data') {
+    // Determine sync mode if not already set
+    if (syncMode === 'unknown') {
+        syncMode = await determineSyncMode();
+        updateSyncModeDisplay();
+    }
+    
+    // Route to appropriate sync method
+    if (syncMode === 'local-server') {
+        return await updateDataToLocalServer(message);
+    } else if (syncMode === 'github') {
+        return await updateDataToGitHub(message);
+    } else {
+        // Local-only mode - save to localStorage only
+        console.log('[Sync] Local-only mode - saving to localStorage only');
+        saveToLocalStorage();
+    }
 }
 
 /**
@@ -1108,15 +1340,15 @@ async function initializeApp() {
     // Try to load from localStorage backup first for immediate display
     loadFromLocalStorage();
     
-    // Then fetch from GitHub - this should overwrite localStorage data if available
-    await fetchDataFromGitHub();
+    // Then fetch from remote source (local server, GitHub, or local-only)
+    await fetchData();
     
     // Ensure we have at least one tab after loading from all sources
     if (!appData.tabs || appData.tabs.length === 0) {
         appData.tabs = [{ id: 'tab_' + Date.now(), name: 'My List' }];
-        // Save the default tab to GitHub if we have a token
-        if (GITHUB_CONFIG.token) {
-            await updateDataToGitHub('Initialize default tab');
+        // Save the default tab using appropriate sync mode
+        if (syncMode !== 'local-only') {
+            await updateData('Initialize default tab');
         }
     }
     
@@ -1207,7 +1439,7 @@ function getDateEntry(dateKey) {
 
 function saveDateEntry(dateKey, entry) {
     appData.dateEntries[dateKey] = entry;
-    updateDataToGitHub('Update daily data');
+    updateData('Update daily data');
 }
 
 function getTabs() {
@@ -1218,7 +1450,7 @@ function getTabs() {
 
 function saveTabs(tabs) {
     appData.tabs = tabs;
-    updateDataToGitHub('Update tabs');
+    updateData('Update tabs');
 }
 
 function getListItems(tabId) {
@@ -1230,7 +1462,7 @@ function getListItems(tabId) {
 
 function saveListItems(tabId, items) {
     appData.listItems[tabId] = items;
-    updateDataToGitHub('Update list items');
+    updateData('Update list items');
 }
 
 // Disciplines management
@@ -1536,8 +1768,8 @@ function shiftTaskDate(index, direction) {
     appData.dateEntries[targetDateKey] = targetDateEntry;
     appData.dateEntries[sourceDateKey] = sourceDateEntry;
     
-    // Save to GitHub once with both changes
-    updateDataToGitHub('Move task between dates');
+    // Save to remote storage once with both changes
+    updateData('Move task between dates');
     
     // Reload tasks for current view
     loadTasks();
@@ -1688,7 +1920,7 @@ function deleteTab(tabId) {
 
     // Clear items for this tab
     delete appData.listItems[tabId];
-    updateDataToGitHub('Delete tab');
+    updateData('Delete tab');
 
     // Switch to first tab if current tab was deleted
     if (currentTabId === tabId) {
@@ -1728,14 +1960,14 @@ function saveListTextarea() {
 // Sync data to data.json
 async function syncData() {
     try {
-        // Check if we have a GitHub token configured
-        if (!GITHUB_CONFIG.token) {
-            showError('GitHub token not configured. Please configure your token in the settings to enable sync.');
+        // Check sync mode - only local-only mode doesn't support manual sync
+        if (syncMode === 'local-only') {
+            showError('No sync configured. Please start the local server or configure a GitHub token to enable sync.');
             return;
         }
         
-        // Trigger sync to GitHub (which saves to data.json)
-        await updateDataToGitHub('Manual sync: Save data to data.json');
+        // Trigger sync to remote storage (saves to data.json)
+        await updateData('Manual sync: Save data to data.json');
         
         // Show success message
         showMessage('✓ Data synced successfully to data.json!', 'success', 3000);
@@ -1817,27 +2049,38 @@ function saveGitHubToken() {
     // Update status
     updateTokenStatus();
     
-    // Show success message
-    showMessage('GitHub token saved successfully! The app will now sync with GitHub.', 'success');
-    
-    // Close the config section
-    const configDetails = document.getElementById('configDetails');
-    if (configDetails) {
-        configDetails.removeAttribute('open');
-    }
-    
-    // Fetch data from GitHub with new token
-    fetchDataFromGitHub().then(() => {
-        updateDateDisplay();
-        loadDisciplines();
-        loadTasks();
-        loadTabs();
-        loadCurrentTab();
+    // Re-determine sync mode (token added, so may switch to GitHub mode)
+    syncMode = 'unknown';
+    determineSyncMode().then((mode) => {
+        syncMode = mode;
+        updateSyncModeDisplay();
+        
+        // Show success message
+        showMessage('GitHub token saved successfully! The app will now sync with GitHub.', 'success');
+        
+        // Close the config section
+        const configDetails = document.getElementById('configDetails');
+        if (configDetails) {
+            configDetails.removeAttribute('open');
+        }
+        
+        // Fetch data from GitHub with new token
+        fetchData().then(() => {
+            updateDateDisplay();
+            loadDisciplines();
+            loadTasks();
+            loadTabs();
+            loadCurrentTab();
+            
+            // Restart auto-sync with new mode
+            stopAutoSync();
+            startAutoSync();
+        });
     });
 }
 
 function clearGitHubToken() {
-    if (!confirm('Are you sure you want to clear the GitHub token? The app will only save data locally after this.')) {
+    if (!confirm('Are you sure you want to clear the GitHub token? The app will switch to local server or local-only mode.')) {
         return;
     }
     
@@ -1850,8 +2093,25 @@ function clearGitHubToken() {
     // Update status
     updateTokenStatus();
     
-    // Show message
-    showMessage('GitHub token cleared. The app will now only save data locally.', 'success');
+    // Re-determine sync mode (token removed, so may switch to local-server or local-only)
+    syncMode = 'unknown';
+    determineSyncMode().then((mode) => {
+        syncMode = mode;
+        updateSyncModeDisplay();
+        
+        // Show message based on new sync mode
+        let message = 'GitHub token cleared. ';
+        if (syncMode === 'local-server') {
+            message += 'The app will now sync with local server.';
+        } else {
+            message += 'The app will now only save data locally.';
+        }
+        showMessage(message, 'success');
+        
+        // Restart auto-sync with new mode
+        stopAutoSync();
+        startAutoSync();
+    });
 }
 
 // Drag and Drop functionality for tasks
