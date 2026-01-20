@@ -1,7 +1,9 @@
 {
   "dateEntries": {
     "2026-01-20": {
-      "disciplines": {},
+      "disciplines": {
+        "0": true
+      },
       "tasks": [
         {
           "name": "Test task - sync without token",
