@@ -18,28 +18,84 @@
             
             <div class="config-section" style="display: none;">
                 <details id="configDetails">
-                    <summary>⚙️ GitHub Sync Configuration</summary>
+                    <summary>⚙️ Cloud Sync Configuration</summary>
                     <div class="config-content">
-                        <p>Configure your GitHub Personal Access Token to enable cross-device synchronization.</p>
-                        <p class="token-status" id="tokenStatus">Status: <span id="tokenStatusText">Not configured</span></p>
-                        <input 
-                            type="password" 
-                            id="githubTokenInput" 
-                            class="config-input" 
-                            placeholder="Enter your GitHub Personal Access Token"
-                        >
-                        <div class="config-buttons">
-                            <button id="saveTokenBtn" class="config-btn">Save Token</button>
-                            <button id="clearTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
+                        <p>Configure cloud storage to enable cross-device synchronization.</p>
+                        
+                        <!-- Dropbox Configuration -->
+                        <div class="cloud-provider-config">
+                            <h3>☁️ Dropbox</h3>
+                            <p class="token-status">Status: <span id="dropboxStatusText">Not configured</span></p>
+                            <input 
+                                type="password" 
+                                id="dropboxTokenInput" 
+                                class="config-input" 
+                                placeholder="Enter your Dropbox Access Token"
+                            >
+                            <div class="config-buttons">
+                                <button id="saveDropboxTokenBtn" class="config-btn">Save Token</button>
+                                <button id="clearDropboxTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
+                            </div>
+                            <p class="config-note">
+                                <strong>How to get a Dropbox token:</strong><br>
+                                1. Go to <a href="https://www.dropbox.com/developers/apps" target="_blank">Dropbox App Console</a><br>
+                                2. Create a new app or use an existing one<br>
+                                3. Generate an access token<br>
+                                4. Copy the token and paste it above
+                            </p>
                         </div>
-                        <p class="config-note">
-                            <strong>How to get a token:</strong><br>
-                            1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a><br>
-                            2. Click "Generate new token (classic)"<br>
-                            3. Select the <code>repo</code> scope<br>
-                            4. Copy the token and paste it above<br>
-                            <br>
-                            <strong>Note:</strong> Your token is stored securely in your browser and never sent to any third-party services.
+
+                        <!-- Google Drive Configuration -->
+                        <div class="cloud-provider-config" style="margin-top: 1.5rem;">
+                            <h3>📁 Google Drive</h3>
+                            <p class="token-status">Status: <span id="googleDriveStatusText">Not configured</span></p>
+                            <input 
+                                type="password" 
+                                id="googleDriveTokenInput" 
+                                class="config-input" 
+                                placeholder="Enter your Google Drive Access Token"
+                            >
+                            <div class="config-buttons">
+                                <button id="saveGoogleDriveTokenBtn" class="config-btn">Save Token</button>
+                                <button id="clearGoogleDriveTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
+                            </div>
+                            <p class="config-note">
+                                <strong>How to get a Google Drive token:</strong><br>
+                                1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
+                                2. Create a new project or select existing<br>
+                                3. Enable Google Drive API<br>
+                                4. Create OAuth 2.0 credentials<br>
+                                5. Use OAuth playground to get access token<br>
+                                <a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth 2.0 Playground</a>
+                            </p>
+                        </div>
+
+                        <!-- GitHub Configuration -->
+                        <div class="cloud-provider-config" style="margin-top: 1.5rem;">
+                            <h3>🐙 GitHub</h3>
+                            <p class="token-status" id="tokenStatus">Status: <span id="tokenStatusText">Not configured</span></p>
+                            <input 
+                                type="password" 
+                                id="githubTokenInput" 
+                                class="config-input" 
+                                placeholder="Enter your GitHub Personal Access Token"
+                            >
+                            <div class="config-buttons">
+                                <button id="saveTokenBtn" class="config-btn">Save Token</button>
+                                <button id="clearTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
+                            </div>
+                            <p class="config-note">
+                                <strong>How to get a GitHub token:</strong><br>
+                                1. Go to <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Personal Access Tokens</a><br>
+                                2. Click "Generate new token (classic)"<br>
+                                3. Select the <code>repo</code> scope<br>
+                                4. Copy the token and paste it above
+                            </p>
+                        </div>
+                        
+                        <p class="config-note" style="margin-top: 1.5rem;">
+                            <strong>Note:</strong> All tokens are stored securely in your browser and never sent to any third-party services.
+                            Priority: Local Server → Dropbox → Google Drive → GitHub → Local-Only
                         </p>
                     </div>
                 </details>
@@ -120,6 +176,7 @@
         </footer>
     </div>
 
+    <script src="sync-providers.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
