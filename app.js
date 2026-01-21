@@ -1390,6 +1390,9 @@ function areAllDisciplinesCompleted() {
     return true;
 }
 
+// Track current section order to avoid unnecessary DOM manipulation
+let currentSectionOrder = null; // 'disciplines-first' or 'tasks-first'
+
 // Dynamically reorder sections based on discipline completion
 function reorderSections() {
     const main = document.querySelector('main');
@@ -1403,17 +1406,27 @@ function reorderSections() {
     
     // Check if all disciplines are completed
     const allCompleted = areAllDisciplinesCompleted();
+    const desiredOrder = allCompleted ? 'tasks-first' : 'disciplines-first';
+    
+    // Only reorder if the desired order is different from current order
+    if (currentSectionOrder === desiredOrder) {
+        return;
+    }
     
     if (allCompleted) {
-        // Move disciplines section after tasks section
+        // Move tasks section before disciplines section
         main.insertBefore(tasksSection, disciplinesSection);
     } else {
-        // Ensure disciplines section is before tasks section
+        // Move disciplines section before tasks section
         main.insertBefore(disciplinesSection, tasksSection);
     }
     
-    // Always ensure lists section is last in main
-    main.appendChild(listsSection);
+    // Ensure lists section is last (only if it's not already last)
+    if (listsSection.nextSibling !== null) {
+        main.appendChild(listsSection);
+    }
+    
+    currentSectionOrder = desiredOrder;
 }
 
 function createDisciplineElement(name, index, isCompleted) {
