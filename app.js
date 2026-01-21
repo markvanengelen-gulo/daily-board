@@ -1370,6 +1370,50 @@ function loadDisciplines() {
 
     // Show/hide completed section
     completedSection.style.display = completedDisciplines.length > 0 ? 'block' : 'none';
+    
+    // Reorder sections based on discipline completion status
+    reorderSections();
+}
+
+// Check if all daily disciplines are completed
+function areAllDisciplinesCompleted() {
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    const savedDisciplines = dateEntry.disciplines || {};
+    
+    // Check if all 5 disciplines are marked as completed
+    for (let i = 0; i < FIXED_DISCIPLINES.length; i++) {
+        if (!savedDisciplines[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Dynamically reorder sections based on discipline completion
+function reorderSections() {
+    const main = document.querySelector('main');
+    const disciplinesSection = document.querySelector('.disciplines-section');
+    const tasksSection = document.querySelector('.tasks-section');
+    const listsSection = document.querySelector('.lists-section');
+    
+    if (!main || !disciplinesSection || !tasksSection || !listsSection) {
+        return;
+    }
+    
+    // Check if all disciplines are completed
+    const allCompleted = areAllDisciplinesCompleted();
+    
+    if (allCompleted) {
+        // Move disciplines section after tasks section
+        main.insertBefore(tasksSection, disciplinesSection);
+    } else {
+        // Ensure disciplines section is before tasks section
+        main.insertBefore(disciplinesSection, tasksSection);
+    }
+    
+    // Always ensure lists section is last in main
+    main.appendChild(listsSection);
 }
 
 function createDisciplineElement(name, index, isCompleted) {
