@@ -59,6 +59,10 @@
         {
           "name": "Passport renewal 5 Feb Edmonton",
           "completed": false
+        },
+        {
+          "name": "REEPS Sifco docs",
+          "completed": false
         }
       ]
     }
