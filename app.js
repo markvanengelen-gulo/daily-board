@@ -813,19 +813,6 @@ async function determineSyncMode() {
     console.log('[Sync] No token - using local-only mode');
     return 'local-only';
 }
-        
-        // Always save to localStorage as this is read-only mode
-        saveToLocalStorage();
-    } catch (error) {
-        console.error('Error in Google Drive Public update:', error);
-        hideSyncIndicator();
-        showError('Failed to process Google Drive Public update.');
-        
-        // Save to localStorage as fallback
-        saveToLocalStorage();
-    }
-}
-
 /**
  * Fetch data from remote source (routes to GitHub based on sync mode)
  * @returns {Promise<Object>} The fetched data
