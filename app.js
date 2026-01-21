@@ -2258,9 +2258,6 @@ async function syncData() {
         // Trigger sync to remote storage (saves to data.json)
         await updateData('Manual sync: Save data to data.json');
         
-        // Then fetch to ensure we have the latest
-        await fetchData();
-        
         // Show success message
         showMessage('✓ Data synced successfully!', 'success', 3000);
     } catch (error) {
