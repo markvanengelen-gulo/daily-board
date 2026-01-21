@@ -30,6 +30,10 @@
           "completed": false
         },
         {
+          "name": "Xanadu NDA",
+          "completed": false
+        },
+        {
           "name": "Covenant Dayforce follow up",
           "completed": false
         },
@@ -67,10 +71,6 @@
         },
         {
           "name": "LNGC CoPilot slides",
-          "completed": false
-        },
-        {
-          "name": "Xanadu NDA",
           "completed": false
         }
       ]
