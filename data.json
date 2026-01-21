@@ -23,7 +23,7 @@
         {
           "name": "Review Architect Resumes",
           "completed": false,
-          "priority": true
+          "priority": false
         },
         {
           "name": "Target Hire Rob",
@@ -32,11 +32,6 @@
         {
           "name": "Covenant Dayforce follow up",
           "completed": false
-        },
-        {
-          "name": "DLCG NExt steps",
-          "completed": false,
-          "priority": true
         },
         {
           "name": "Ovintiv Renwal",
