@@ -2244,15 +2244,25 @@ async function syncData() {
     try {
         // Check sync mode - only local-only mode doesn't support manual sync
         if (syncMode === 'local-only') {
-            showError('No sync configured. Please start the local server or configure a GitHub token to enable sync.');
+            showError('No sync configured. Please configure Google Drive, GitHub, or start the local server to enable sync. Click "⚙️ Cloud Sync Configuration" below to get started.');
+            return;
+        }
+        
+        // For read-only modes (like google-drive-public), perform a read sync
+        if (syncMode === 'google-drive-public') {
+            await fetchData();
+            showMessage('✓ Data synced from Google Drive!', 'success', 3000);
             return;
         }
         
         // Trigger sync to remote storage (saves to data.json)
         await updateData('Manual sync: Save data to data.json');
         
+        // Then fetch to ensure we have the latest
+        await fetchData();
+        
         // Show success message
-        showMessage('✓ Data synced successfully to data.json!', 'success', 3000);
+        showMessage('✓ Data synced successfully!', 'success', 3000);
     } catch (error) {
         console.error('Error syncing data:', error);
         logError('syncData', error);
