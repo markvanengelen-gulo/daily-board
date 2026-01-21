@@ -12,7 +12,10 @@
       ]
     },
     "2026-01-21": {
-      "disciplines": {},
+      "disciplines": {
+        "0": true,
+        "1": true
+      },
       "tasks": []
     }
   },
