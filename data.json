@@ -22,7 +22,8 @@
       "tasks": [
         {
           "name": "Review Architect Resumes",
-          "completed": false
+          "completed": false,
+          "priority": true
         },
         {
           "name": "Target Hire Rob",
