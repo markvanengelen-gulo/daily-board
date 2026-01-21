@@ -27,7 +27,8 @@
         },
         {
           "name": "Target Hire Rob",
-          "completed": false
+          "completed": false,
+          "priority": true
         },
         {
           "name": "Xanadu NDA",
