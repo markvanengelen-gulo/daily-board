@@ -21,60 +21,12 @@
             
             <div class="config-section">
                 <details id="configDetails">
-                    <summary>⚙️ Cloud Sync Configuration</summary>
+                    <summary>⚙️ Sync Configuration</summary>
                     <div class="config-content">
-                        <p>Configure cloud storage to enable cross-device synchronization.</p>
+                        <p>Configure GitHub token to enable cross-device synchronization.</p>
                         
-                        <!-- Dropbox Configuration -->
-                        <div class="cloud-provider-config">
-                            <h3>☁️ Dropbox</h3>
-                            <p class="token-status">Status: <span id="dropboxStatusText">Not configured</span></p>
-                            <input 
-                                type="password" 
-                                id="dropboxTokenInput" 
-                                class="config-input" 
-                                placeholder="Enter your Dropbox Access Token"
-                            >
-                            <div class="config-buttons">
-                                <button id="saveDropboxTokenBtn" class="config-btn">Save Token</button>
-                                <button id="clearDropboxTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
-                            </div>
-                            <p class="config-note">
-                                <strong>How to get a Dropbox token:</strong><br>
-                                1. Go to <a href="https://www.dropbox.com/developers/apps" target="_blank">Dropbox App Console</a><br>
-                                2. Create a new app or use an existing one<br>
-                                3. Generate an access token<br>
-                                4. Copy the token and paste it above
-                            </p>
-                        </div>
-
-                        <!-- Google Drive Configuration -->
-                        <div class="cloud-provider-config" style="margin-top: 1.5rem;">
-                            <h3>📁 Google Drive</h3>
-                            <p class="token-status">Status: <span id="googleDriveStatusText">Not configured</span></p>
-                            <input 
-                                type="password" 
-                                id="googleDriveTokenInput" 
-                                class="config-input" 
-                                placeholder="Enter your Google Drive Access Token"
-                            >
-                            <div class="config-buttons">
-                                <button id="saveGoogleDriveTokenBtn" class="config-btn">Save Token</button>
-                                <button id="clearGoogleDriveTokenBtn" class="config-btn" style="background: #ff6b6b;">Clear Token</button>
-                            </div>
-                            <p class="config-note">
-                                <strong>How to get a Google Drive token:</strong><br>
-                                1. Go to <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a><br>
-                                2. Create a new project or select existing<br>
-                                3. Enable Google Drive API<br>
-                                4. Create OAuth 2.0 credentials<br>
-                                5. Use OAuth playground to get access token<br>
-                                <a href="https://developers.google.com/oauthplayground/" target="_blank">OAuth 2.0 Playground</a>
-                            </p>
-                        </div>
-
                         <!-- GitHub Configuration -->
-                        <div class="cloud-provider-config" style="margin-top: 1.5rem;">
+                        <div class="cloud-provider-config">
                             <h3>🐙 GitHub</h3>
                             <p class="token-status" id="tokenStatus">Status: <span id="tokenStatusText">Not configured</span></p>
                             <input 
@@ -97,13 +49,9 @@
                         </div>
                         
                         <p class="config-note" style="margin-top: 1.5rem;">
-                            <strong>Note:</strong> All tokens are stored securely in your browser and never sent to any third-party services.<br>
-                            <strong>Sync Priority:</strong> The app automatically selects the best available sync method in this order:
-                            <br>1. Local Server (fastest, no token needed)
-                            <br>2. Dropbox (cloud, easy setup)
-                            <br>3. Google Drive (cloud, 15GB free)
-                            <br>4. GitHub (cloud, version control)
-                            <br>5. Local-Only (fallback, no sync)
+                            <strong>Note:</strong> Your token is stored securely in your browser and never sent to any third-party services.<br>
+                            <strong>Git-Based Sync:</strong> The sync button commits your changes to data.json and pushes them to GitHub, 
+                            triggering automatic GitHub Pages redeployment. All your devices will pull the latest changes from GitHub Pages.
                         </p>
                     </div>
                 </details>
