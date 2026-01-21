@@ -2244,7 +2244,7 @@ async function syncData() {
     try {
         // Check sync mode - only local-only mode doesn't support manual sync
         if (syncMode === 'local-only') {
-            showError('No sync configured. Please configure Google Drive, GitHub, or start the local server to enable sync. Click "⚙️ Cloud Sync Configuration" below to get started.');
+            showError('No sync configured. Please configure Google Drive, GitHub, or start the local server to enable sync. Click "⚙️ Cloud Sync Configuration" above to get started.');
             return;
         }
         
