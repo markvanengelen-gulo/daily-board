@@ -23,7 +23,7 @@
         {
           "name": "Review Architect Resumes",
           "completed": false,
-          "priority": false
+          "priority": true
         },
         {
           "name": "Target Hire Rob",
