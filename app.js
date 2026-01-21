@@ -1,10 +1,3 @@
-// Local Server API Configuration (for token-less sync)
-const LOCAL_SERVER_CONFIG = {
-    enabled: true, // Try local server first by default
-    url: 'http://localhost:3000',
-    apiPath: '/api/data'
-};
-
 // GitHub API Configuration
 const GITHUB_CONFIG = {
     owner: 'markvanengelen-gulo',
@@ -14,45 +7,11 @@ const GITHUB_CONFIG = {
     token: localStorage.getItem('githubToken') || ''
 };
 
-// Initialize sync providers
-let dropboxProvider = null;
-let googleDriveProvider = null;
-let googleDrivePublicProvider = null;
-
-// Initialize providers when DOM is loaded
-function initializeSyncProviders() {
-    if (typeof DropboxSyncProvider !== 'undefined') {
-        dropboxProvider = new DropboxSyncProvider();
-    }
-    if (typeof GoogleDriveSyncProvider !== 'undefined') {
-        googleDriveProvider = new GoogleDriveSyncProvider();
-    }
-    if (typeof GoogleDrivePublicSyncProvider !== 'undefined') {
-        googleDrivePublicProvider = new GoogleDrivePublicSyncProvider();
-    }
-}
-
 // Sync mode state
-let syncMode = 'unknown'; // 'local-server', 'dropbox', 'google-drive', 'google-drive-public', 'github', or 'local-only'
+let syncMode = 'unknown'; // 'github' or 'local-only'
 
 // Sync mode display constants
 const SYNC_MODE_DISPLAY = {
-    'local-server': {
-        text: '✓ Sync: Local Server (No token needed)',
-        color: '#28a745'
-    },
-    'dropbox': {
-        text: '✓ Sync: Dropbox',
-        color: '#0061FF'
-    },
-    'google-drive': {
-        text: '✓ Sync: Google Drive',
-        color: '#4285F4'
-    },
-    'google-drive-public': {
-        text: '✓ Sync: Google Drive (Public File)',
-        color: '#34A853'
-    },
     'github': {
         text: '✓ Sync: GitHub API',
         color: '#007bff'
@@ -303,62 +262,8 @@ function stopAutoSync() {
  */
 async function checkForRemoteUpdates() {
     try {
-        // For local-server mode, we'll simply fetch and compare data
         // For GitHub mode, we use SHA-based detection
-        // For cloud storage (Dropbox, Google Drive), we fetch and compare
-        if (syncMode === 'local-server') {
-            // For local server, fetch data and compare with current
-            console.log('[Auto-Sync] Checking for updates from local server...');
-            
-            // Store current data for comparison
-            const previousDataString = JSON.stringify(appData);
-            
-            await fetchDataFromLocalServer();
-            
-            // Check if data actually changed
-            const newDataString = JSON.stringify(appData);
-            if (previousDataString !== newDataString) {
-                // Update UI only if data changed
-                updateDateDisplay();
-                loadDisciplines();
-                loadTasks();
-                loadTabs();
-                loadCurrentTab();
-                
-                console.log('[Auto-Sync] Data changed - UI refreshed from local server');
-            } else {
-                console.log('[Auto-Sync] No changes detected from local server');
-            }
-        } else if (syncMode === 'dropbox' || syncMode === 'google-drive') {
-            // For cloud storage, fetch data and compare with current
-            console.log(`[Auto-Sync] Checking for updates from ${syncMode}...`);
-            
-            // Store current data for comparison
-            const previousDataString = JSON.stringify(appData);
-            
-            // Fetch data from the appropriate provider
-            if (syncMode === 'dropbox') {
-                await fetchDataFromDropbox();
-            } else {
-                await fetchDataFromGoogleDrive();
-            }
-            
-            // Check if data actually changed
-            const newDataString = JSON.stringify(appData);
-            if (previousDataString !== newDataString) {
-                // Update UI only if data changed
-                updateDateDisplay();
-                loadDisciplines();
-                loadTasks();
-                loadTabs();
-                loadCurrentTab();
-                
-                console.log(`[Auto-Sync] Data changed - UI refreshed from ${syncMode}`);
-                showMessage('📥 Data synchronized from remote', 'success', 3000);
-            } else {
-                console.log(`[Auto-Sync] No changes detected from ${syncMode}`);
-            }
-        } else if (syncMode === 'github') {
+        if (syncMode === 'github') {
             const remoteSHA = await checkRemoteSHA();
             
             // If we don't have a current SHA or remote check failed, skip
@@ -893,305 +798,21 @@ function initializeDataStructure(data) {
  * Check if local server is available
  * @returns {Promise<boolean>} True if local server is available
  */
-async function isLocalServerAvailable() {
-    if (!LOCAL_SERVER_CONFIG.enabled) {
-        return false;
-    }
-    
-    try {
-        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}/api/health`, {
-            method: 'GET',
-            signal: AbortSignal.timeout(2000) // 2 second timeout
-        });
-        return response.ok;
-    } catch (error) {
-        // Server not available
-        return false;
-    }
-}
-
 /**
  * Determine the active sync mode
- * @returns {Promise<string>} 'local-server', 'github', or 'local-only'
+ * @returns {Promise<string>} 'github' or 'local-only'
  */
 async function determineSyncMode() {
-    // Check local server first (no token needed)
-    const serverAvailable = await isLocalServerAvailable();
-    if (serverAvailable) {
-        console.log('[Sync] Local server available - using token-free sync mode');
-        return 'local-server';
-    }
-    
-    // Check Dropbox (priority #2)
-    if (dropboxProvider) {
-        const dropboxAvailable = await dropboxProvider.checkAvailability();
-        if (dropboxAvailable) {
-            console.log('[Sync] Dropbox configured - using Dropbox sync mode');
-            return 'dropbox';
-        }
-    }
-    
-    // Check Google Drive Public (priority #3 - no token needed)
-    if (googleDrivePublicProvider) {
-        const drivePublicAvailable = await googleDrivePublicProvider.checkAvailability();
-        if (drivePublicAvailable) {
-            console.log('[Sync] Google Drive Public file configured - using Google Drive Public sync mode');
-            return 'google-drive-public';
-        }
-    }
-    
-    // Check Google Drive (priority #4 - requires token)
-    if (googleDriveProvider) {
-        const driveAvailable = await googleDriveProvider.checkAvailability();
-        if (driveAvailable) {
-            console.log('[Sync] Google Drive configured - using Google Drive sync mode');
-            return 'google-drive';
-        }
-    }
-    
-    // Check if GitHub token is configured (priority #5)
+    // Check if GitHub token is configured
     if (GITHUB_CONFIG.token) {
         console.log('[Sync] GitHub token configured - using GitHub API mode');
         return 'github';
     }
     
     // Fall back to local-only mode
-    console.log('[Sync] No server or token - using local-only mode');
+    console.log('[Sync] No token - using local-only mode');
     return 'local-only';
 }
-
-/**
- * Fetch data from local server
- * @returns {Promise<Object>} The fetched data
- */
-async function fetchDataFromLocalServer() {
-    try {
-        showSyncIndicator('loading');
-        
-        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}${LOCAL_SERVER_CONFIG.apiPath}`, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to fetch from local server: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // Ensure the data structure has all required fields
-        const initializedData = initializeDataStructure(data);
-        
-        appData = initializedData;
-        hideSyncIndicator();
-        return initializedData;
-    } catch (error) {
-        console.error('Error fetching data from local server:', error);
-        hideSyncIndicator();
-        showError('Failed to load data from local server. Using local fallback.');
-        
-        // Fallback to localStorage if local server fetch fails
-        return loadFromLocalStorageFallback();
-    }
-}
-
-/**
- * Update data to local server
- * @param {string} message - Commit message (not used for local server, kept for API compatibility)
- * @returns {Promise<void>}
- */
-async function updateDataToLocalServer(message = 'Update data') {
-    try {
-        showSyncIndicator('saving');
-        
-        const response = await fetch(`${LOCAL_SERVER_CONFIG.url}${LOCAL_SERVER_CONFIG.apiPath}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(appData)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Failed to update local server: ${response.status}`);
-        }
-        
-        const result = await response.json();
-        
-        // Update last sync time
-        updateLastSyncTime();
-        
-        hideSyncIndicator();
-        
-        // Also save to localStorage as backup
-        saveToLocalStorage();
-        
-        console.log('[Sync] Data saved to local server successfully');
-    } catch (error) {
-        console.error('Error updating data to local server:', error);
-        hideSyncIndicator();
-        showError('Failed to save data to local server. Changes saved locally.');
-        
-        // Save to localStorage as fallback
-        saveToLocalStorage();
-    }
-}
-
-/**
- * Fetch data from Dropbox
- * @returns {Promise<Object>} The fetched data
- */
-async function fetchDataFromDropbox() {
-    try {
-        showSyncIndicator('loading');
-        
-        const data = await dropboxProvider.fetchData();
-        
-        // Ensure the data structure has all required fields
-        const initializedData = initializeDataStructure(data);
-        
-        appData = initializedData;
-        saveToLocalStorage(); // Save to localStorage as backup
-        hideSyncIndicator();
-        updateLastSyncTime();
-        return initializedData;
-    } catch (error) {
-        console.error('Error fetching data from Dropbox:', error);
-        hideSyncIndicator();
-        showError('Failed to load data from Dropbox. Using local fallback.');
-        
-        // Fallback to localStorage if Dropbox fetch fails
-        return loadFromLocalStorageFallback();
-    }
-}
-
-/**
- * Update data to Dropbox
- * @param {string} message - Commit message (not used for Dropbox, kept for API compatibility)
- * @returns {Promise<void>}
- */
-async function updateDataToDropbox(message = 'Update data') {
-    try {
-        showSyncIndicator('saving');
-        
-        await dropboxProvider.updateData(appData, message);
-        
-        hideSyncIndicator();
-        updateLastSyncTime();
-        
-        // Save to localStorage as fallback
-        saveToLocalStorage();
-    } catch (error) {
-        console.error('Error updating data to Dropbox:', error);
-        hideSyncIndicator();
-        showError('Failed to save data to Dropbox.');
-        throw error;
-    }
-}
-
-/**
- * Fetch data from Google Drive
- * @returns {Promise<Object>} The fetched data
- */
-async function fetchDataFromGoogleDrive() {
-    try {
-        showSyncIndicator('loading');
-        
-        const data = await googleDriveProvider.fetchData();
-        
-        // Ensure the data structure has all required fields
-        const initializedData = initializeDataStructure(data);
-        
-        appData = initializedData;
-        saveToLocalStorage(); // Save to localStorage as backup
-        hideSyncIndicator();
-        updateLastSyncTime();
-        return initializedData;
-    } catch (error) {
-        console.error('Error fetching data from Google Drive:', error);
-        hideSyncIndicator();
-        showError('Failed to load data from Google Drive. Using local fallback.');
-        
-        // Fallback to localStorage if Google Drive fetch fails
-        return loadFromLocalStorageFallback();
-    }
-}
-
-/**
- * Update data to Google Drive
- * @param {string} message - Commit message (not used for Google Drive, kept for API compatibility)
- * @returns {Promise<void>}
- */
-async function updateDataToGoogleDrive(message = 'Update data') {
-    try {
-        showSyncIndicator('saving');
-        
-        await googleDriveProvider.updateData(appData, message);
-        
-        hideSyncIndicator();
-        updateLastSyncTime();
-        
-        // Save to localStorage as fallback
-        saveToLocalStorage();
-    } catch (error) {
-        console.error('Error updating data to Google Drive:', error);
-        hideSyncIndicator();
-        showError('Failed to save data to Google Drive.');
-        throw error;
-    }
-}
-
-/**
- * Fetch data from Google Drive Public file
- * @returns {Promise<Object>} The fetched data
- */
-async function fetchDataFromGoogleDrivePublic() {
-    try {
-        showSyncIndicator('loading');
-        
-        const data = await googleDrivePublicProvider.fetchData();
-        
-        // Ensure the data structure has all required fields
-        const initializedData = initializeDataStructure(data);
-        
-        appData = initializedData;
-        saveToLocalStorage(); // Save to localStorage as backup
-        hideSyncIndicator();
-        updateLastSyncTime();
-        return initializedData;
-    } catch (error) {
-        console.error('Error fetching data from Google Drive Public:', error);
-        hideSyncIndicator();
-        showError(`Failed to load data from Google Drive Public file: ${error.message}`);
-        
-        // Fallback to localStorage if Google Drive fetch fails
-        return loadFromLocalStorageFallback();
-    }
-}
-
-/**
- * Update data to Google Drive Public file
- * Note: This is a read-only provider, so this function only logs a warning
- * @param {string} message - Commit message (not used)
- * @returns {Promise<void>}
- */
-async function updateDataToGoogleDrivePublic(message = 'Update data') {
-    try {
-        showSyncIndicator('saving');
-        
-        // Public Google Drive provider is read-only
-        const success = await googleDrivePublicProvider.updateData(appData, message);
-        
-        if (!success) {
-            console.warn('[Google Drive Public] Read-only mode: Data saved to localStorage only');
-            showError('Google Drive Public is read-only. Changes saved locally only.');
-        }
-        
-        hideSyncIndicator();
-        updateLastSyncTime();
         
         // Always save to localStorage as this is read-only mode
         saveToLocalStorage();
@@ -1206,7 +827,7 @@ async function updateDataToGoogleDrivePublic(message = 'Update data') {
 }
 
 /**
- * Fetch data from remote source (routes to local server or GitHub based on sync mode)
+ * Fetch data from remote source (routes to GitHub based on sync mode)
  * @returns {Promise<Object>} The fetched data
  */
 async function fetchData() {
@@ -1217,15 +838,7 @@ async function fetchData() {
     }
     
     // Route to appropriate sync method
-    if (syncMode === 'local-server') {
-        return await fetchDataFromLocalServer();
-    } else if (syncMode === 'dropbox') {
-        return await fetchDataFromDropbox();
-    } else if (syncMode === 'google-drive-public') {
-        return await fetchDataFromGoogleDrivePublic();
-    } else if (syncMode === 'google-drive') {
-        return await fetchDataFromGoogleDrive();
-    } else if (syncMode === 'github') {
+    if (syncMode === 'github') {
         return await fetchDataFromGitHub();
     } else {
         // Local-only mode - load from localStorage
@@ -1235,7 +848,7 @@ async function fetchData() {
 }
 
 /**
- * Update data to remote source (routes to local server or GitHub based on sync mode)
+ * Update data to remote source (routes to GitHub based on sync mode)
  * @param {string} message - Commit message
  * @returns {Promise<void>}
  */
@@ -1247,15 +860,7 @@ async function updateData(message = 'Update data') {
     }
     
     // Route to appropriate sync method
-    if (syncMode === 'local-server') {
-        return await updateDataToLocalServer(message);
-    } else if (syncMode === 'dropbox') {
-        return await updateDataToDropbox(message);
-    } else if (syncMode === 'google-drive-public') {
-        return await updateDataToGoogleDrivePublic(message);
-    } else if (syncMode === 'google-drive') {
-        return await updateDataToGoogleDrive(message);
-    } else if (syncMode === 'github') {
+    if (syncMode === 'github') {
         return await updateDataToGitHub(message);
     } else {
         // Local-only mode - save to localStorage only
@@ -1598,9 +1203,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initializeApp() {
-    // Initialize sync providers
-    initializeSyncProviders();
-    
     // Register service worker for offline support
     registerServiceWorker();
     
@@ -1673,12 +1275,6 @@ function setupEventListeners() {
     
     // Download button
     document.getElementById('downloadBtn').addEventListener('click', downloadData);
-    
-    // Cloud storage token configuration
-    document.getElementById('saveDropboxTokenBtn').addEventListener('click', saveDropboxToken);
-    document.getElementById('clearDropboxTokenBtn').addEventListener('click', clearDropboxToken);
-    document.getElementById('saveGoogleDriveTokenBtn').addEventListener('click', saveGoogleDriveToken);
-    document.getElementById('clearGoogleDriveTokenBtn').addEventListener('click', clearGoogleDriveToken);
     
     // GitHub token configuration
     document.getElementById('saveTokenBtn').addEventListener('click', saveGitHubToken);
@@ -2244,22 +1840,15 @@ async function syncData() {
     try {
         // Check sync mode - only local-only mode doesn't support manual sync
         if (syncMode === 'local-only') {
-            showError('No sync configured. Please configure Google Drive, GitHub, or start the local server to enable sync. Click "⚙️ Cloud Sync Configuration" above to get started.');
+            showError('No sync configured. Please configure GitHub token to enable sync. Click "⚙️ Sync Configuration" above to get started.');
             return;
         }
         
-        // For read-only modes (like google-drive-public), perform a read sync
-        if (syncMode === 'google-drive-public') {
-            await fetchData();
-            showMessage('✓ Data synced from Google Drive!', 'success', 3000);
-            return;
-        }
-        
-        // Trigger sync to remote storage (saves to data.json)
+        // Trigger sync to remote storage (saves to data.json in GitHub)
         await updateData('Manual sync: Save data to data.json');
         
         // Show success message
-        showMessage('✓ Data synced successfully!', 'success', 3000);
+        showMessage('✓ Data synced successfully to GitHub!', 'success', 3000);
     } catch (error) {
         console.error('Error syncing data:', error);
         logError('syncData', error);
@@ -2316,228 +1905,9 @@ function updateTokenStatus() {
         statusText.style.color = '#ff6b6b';
         tokenInput.placeholder = 'Enter your GitHub Personal Access Token';
     }
-    
-    // Update Dropbox status
-    const dropboxStatusText = document.getElementById('dropboxStatusText');
-    const dropboxTokenInput = document.getElementById('dropboxTokenInput');
-    const dropboxToken = localStorage.getItem('dropboxToken');
-    
-    if (dropboxToken) {
-        dropboxStatusText.textContent = '✓ Configured';
-        dropboxStatusText.style.color = '#51cf66';
-        dropboxTokenInput.placeholder = 'Token is configured (enter new token to update)';
-    } else {
-        dropboxStatusText.textContent = '✗ Not configured';
-        dropboxStatusText.style.color = '#ff6b6b';
-        dropboxTokenInput.placeholder = 'Enter your Dropbox Access Token';
-    }
-    
-    // Update Google Drive status
-    const googleDriveStatusText = document.getElementById('googleDriveStatusText');
-    const googleDriveTokenInput = document.getElementById('googleDriveTokenInput');
-    const googleDriveToken = localStorage.getItem('googleDriveToken');
-    
-    if (googleDriveToken) {
-        googleDriveStatusText.textContent = '✓ Configured';
-        googleDriveStatusText.style.color = '#51cf66';
-        googleDriveTokenInput.placeholder = 'Token is configured (enter new token to update)';
-    } else {
-        googleDriveStatusText.textContent = '✗ Not configured';
-        googleDriveStatusText.style.color = '#ff6b6b';
-        googleDriveTokenInput.placeholder = 'Enter your Google Drive Access Token';
-    }
 }
 
-// Dropbox token management functions
-function saveDropboxToken() {
-    const tokenInput = document.getElementById('dropboxTokenInput');
-    const token = tokenInput.value.trim();
-    
-    if (!token) {
-        showError('Please enter a valid Dropbox token');
-        return;
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('dropboxToken', token);
-    
-    // Re-initialize the Dropbox provider
-    if (dropboxProvider) {
-        dropboxProvider.config.accessToken = token;
-    }
-    
-    // Clear the input
-    tokenInput.value = '';
-    
-    // Update status
-    updateTokenStatus();
-    
-    // Re-determine sync mode
-    syncMode = 'unknown';
-    determineSyncMode().then((mode) => {
-        syncMode = mode;
-        updateSyncModeDisplay();
-        
-        // Show success message
-        showMessage('Dropbox token saved successfully! The app will now sync with Dropbox.', 'success');
-        
-        // Close the config section
-        const configDetails = document.getElementById('configDetails');
-        if (configDetails) {
-            configDetails.removeAttribute('open');
-        }
-        
-        // Fetch data from Dropbox with new token
-        fetchData().then(() => {
-            updateDateDisplay();
-            loadDisciplines();
-            loadTasks();
-            loadTabs();
-            loadCurrentTab();
-            
-            // Restart auto-sync with new mode
-            stopAutoSync();
-            startAutoSync();
-        });
-    });
-}
-
-function clearDropboxToken() {
-    if (!confirm('Are you sure you want to clear the Dropbox token? The app will switch to another sync mode.')) {
-        return;
-    }
-    
-    // Remove from localStorage
-    localStorage.removeItem('dropboxToken');
-    
-    // Update the provider
-    if (dropboxProvider) {
-        dropboxProvider.config.accessToken = '';
-    }
-    
-    // Update status
-    updateTokenStatus();
-    
-    // Re-determine sync mode
-    syncMode = 'unknown';
-    determineSyncMode().then((mode) => {
-        syncMode = mode;
-        updateSyncModeDisplay();
-        
-        // Show message based on new sync mode
-        let message = 'Dropbox token cleared. ';
-        if (syncMode === 'local-server') {
-            message += 'The app will now sync with local server.';
-        } else if (syncMode === 'google-drive') {
-            message += 'The app will now sync with Google Drive.';
-        } else if (syncMode === 'github') {
-            message += 'The app will now sync with GitHub.';
-        } else {
-            message += 'The app will now only save data locally.';
-        }
-        showMessage(message, 'success');
-        
-        // Restart auto-sync with new mode
-        stopAutoSync();
-        startAutoSync();
-    });
-}
-
-// Google Drive token management functions
-function saveGoogleDriveToken() {
-    const tokenInput = document.getElementById('googleDriveTokenInput');
-    const token = tokenInput.value.trim();
-    
-    if (!token) {
-        showError('Please enter a valid Google Drive token');
-        return;
-    }
-    
-    // Save to localStorage
-    localStorage.setItem('googleDriveToken', token);
-    
-    // Re-initialize the Google Drive provider
-    if (googleDriveProvider) {
-        googleDriveProvider.config.accessToken = token;
-    }
-    
-    // Clear the input
-    tokenInput.value = '';
-    
-    // Update status
-    updateTokenStatus();
-    
-    // Re-determine sync mode
-    syncMode = 'unknown';
-    determineSyncMode().then((mode) => {
-        syncMode = mode;
-        updateSyncModeDisplay();
-        
-        // Show success message
-        showMessage('Google Drive token saved successfully! The app will now sync with Google Drive.', 'success');
-        
-        // Close the config section
-        const configDetails = document.getElementById('configDetails');
-        if (configDetails) {
-            configDetails.removeAttribute('open');
-        }
-        
-        // Fetch data from Google Drive with new token
-        fetchData().then(() => {
-            updateDateDisplay();
-            loadDisciplines();
-            loadTasks();
-            loadTabs();
-            loadCurrentTab();
-            
-            // Restart auto-sync with new mode
-            stopAutoSync();
-            startAutoSync();
-        });
-    });
-}
-
-function clearGoogleDriveToken() {
-    if (!confirm('Are you sure you want to clear the Google Drive token? The app will switch to another sync mode.')) {
-        return;
-    }
-    
-    // Remove from localStorage
-    localStorage.removeItem('googleDriveToken');
-    
-    // Update the provider
-    if (googleDriveProvider) {
-        googleDriveProvider.config.accessToken = '';
-    }
-    
-    // Update status
-    updateTokenStatus();
-    
-    // Re-determine sync mode
-    syncMode = 'unknown';
-    determineSyncMode().then((mode) => {
-        syncMode = mode;
-        updateSyncModeDisplay();
-        
-        // Show message based on new sync mode
-        let message = 'Google Drive token cleared. ';
-        if (syncMode === 'local-server') {
-            message += 'The app will now sync with local server.';
-        } else if (syncMode === 'dropbox') {
-            message += 'The app will now sync with Dropbox.';
-        } else if (syncMode === 'github') {
-            message += 'The app will now sync with GitHub.';
-        } else {
-            message += 'The app will now only save data locally.';
-        }
-        showMessage(message, 'success');
-        
-        // Restart auto-sync with new mode
-        stopAutoSync();
-        startAutoSync();
-    });
-}
-
+// GitHub token management function
 function saveGitHubToken() {
     const tokenInput = document.getElementById('githubTokenInput');
     const token = tokenInput.value.trim();
@@ -2590,7 +1960,7 @@ function saveGitHubToken() {
 }
 
 function clearGitHubToken() {
-    if (!confirm('Are you sure you want to clear the GitHub token? The app will switch to local server or local-only mode.')) {
+    if (!confirm('Are you sure you want to clear the GitHub token? The app will switch to local-only mode.')) {
         return;
     }
     
@@ -2603,20 +1973,14 @@ function clearGitHubToken() {
     // Update status
     updateTokenStatus();
     
-    // Re-determine sync mode (token removed, so may switch to local-server or local-only)
+    // Re-determine sync mode (token removed, so will switch to local-only)
     syncMode = 'unknown';
     determineSyncMode().then((mode) => {
         syncMode = mode;
         updateSyncModeDisplay();
         
         // Show message based on new sync mode
-        let message = 'GitHub token cleared. ';
-        if (syncMode === 'local-server') {
-            message += 'The app will now sync with local server.';
-        } else {
-            message += 'The app will now only save data locally.';
-        }
-        showMessage(message, 'success');
+        showMessage('GitHub token cleared. The app will now only save data locally.', 'info');
         
         // Restart auto-sync with new mode
         stopAutoSync();
