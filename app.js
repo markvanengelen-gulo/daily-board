@@ -1381,7 +1381,7 @@ function areAllDisciplinesCompleted() {
     const dateEntry = getDateEntry(dateKey);
     const savedDisciplines = dateEntry.disciplines || {};
     
-    // Check if all 5 disciplines are marked as completed
+    // Check if all disciplines are marked as completed
     for (let i = 0; i < FIXED_DISCIPLINES.length; i++) {
         if (!savedDisciplines[i]) {
             return false;
@@ -1421,10 +1421,8 @@ function reorderSections() {
         main.insertBefore(disciplinesSection, tasksSection);
     }
     
-    // Ensure lists section is last (only if it's not already last)
-    if (listsSection.nextSibling !== null) {
-        main.appendChild(listsSection);
-    }
+    // Ensure lists section is last
+    main.appendChild(listsSection);
     
     currentSectionOrder = desiredOrder;
 }
