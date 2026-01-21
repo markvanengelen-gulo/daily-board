@@ -34,6 +34,10 @@
           "completed": false
         },
         {
+          "name": "LNGC CoPilot slides",
+          "completed": false
+        },
+        {
           "name": "CNRL EIE slides",
           "completed": false
         },
@@ -67,10 +71,6 @@
         },
         {
           "name": "REEPS Sifco docs",
-          "completed": false
-        },
-        {
-          "name": "LNGC CoPilot slides",
           "completed": false
         }
       ]
