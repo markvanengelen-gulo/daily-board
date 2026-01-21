@@ -1370,6 +1370,61 @@ function loadDisciplines() {
 
     // Show/hide completed section
     completedSection.style.display = completedDisciplines.length > 0 ? 'block' : 'none';
+    
+    // Reorder sections based on discipline completion status
+    reorderSections();
+}
+
+// Check if all daily disciplines are completed
+function areAllDisciplinesCompleted() {
+    const dateKey = getDateKey();
+    const dateEntry = getDateEntry(dateKey);
+    const savedDisciplines = dateEntry.disciplines || {};
+    
+    // Check if all disciplines are marked as completed
+    for (let i = 0; i < FIXED_DISCIPLINES.length; i++) {
+        if (!savedDisciplines[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Track current section order to avoid unnecessary DOM manipulation
+let currentSectionOrder = null; // 'disciplines-first' or 'tasks-first'
+
+// Dynamically reorder sections based on discipline completion
+function reorderSections() {
+    const main = document.querySelector('main');
+    const disciplinesSection = document.querySelector('.disciplines-section');
+    const tasksSection = document.querySelector('.tasks-section');
+    const listsSection = document.querySelector('.lists-section');
+    
+    if (!main || !disciplinesSection || !tasksSection || !listsSection) {
+        return;
+    }
+    
+    // Check if all disciplines are completed
+    const allCompleted = areAllDisciplinesCompleted();
+    const desiredOrder = allCompleted ? 'tasks-first' : 'disciplines-first';
+    
+    // Only reorder if the desired order is different from current order
+    if (currentSectionOrder === desiredOrder) {
+        return;
+    }
+    
+    if (allCompleted) {
+        // Move tasks section before disciplines section
+        main.insertBefore(tasksSection, disciplinesSection);
+    } else {
+        // Move disciplines section before tasks section
+        main.insertBefore(disciplinesSection, tasksSection);
+    }
+    
+    // Ensure lists section is last
+    main.appendChild(listsSection);
+    
+    currentSectionOrder = desiredOrder;
 }
 
 function createDisciplineElement(name, index, isCompleted) {
