@@ -19,7 +19,12 @@
         "3": true,
         "4": true
       },
-      "tasks": []
+      "tasks": [
+        {
+          "name": "Test 88",
+          "completed": false
+        }
+      ]
     }
   },
   "tabs": [
