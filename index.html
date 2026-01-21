@@ -11,12 +11,15 @@
         <header>
             <h1>Daily Board</h1>
             <p class="subtitle">Track your daily disciplines and tasks</p>
-            <div id="syncIndicator" class="sync-indicator" style="display: none;">Syncing...</div>
-            <div id="syncMode" class="sync-mode" style="font-size: 0.85rem; color: #666; margin-top: 0.3rem;">Sync: Unknown</div>
-            <div id="syncStatus" class="sync-status" style="font-size: 0.85rem; color: #666; margin-top: 0.3rem;">Last sync: Never</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                <button id="syncBtn" class="download-btn" title="Sync data with cloud storage" style="margin: 0;">🔄 Sync</button>
+                <div id="syncIndicator" class="sync-indicator" style="display: none; margin: 0;">Syncing...</div>
+                <div id="syncMode" class="sync-mode" style="font-size: 0.85rem; color: #666; margin: 0;">Sync: Unknown</div>
+                <div id="syncStatus" class="sync-status" style="font-size: 0.85rem; color: #666; margin: 0;">Last sync: Never</div>
+            </div>
             <div id="errorMessage" class="error-message" style="display: none;"></div>
             
-            <div class="config-section" style="display: none;">
+            <div class="config-section">
                 <details id="configDetails">
                     <summary>⚙️ Cloud Sync Configuration</summary>
                     <div class="config-content">
@@ -156,7 +159,6 @@
             <section class="lists-section">
                 <div class="section-header">
                     <h3>Lists</h3>
-                    <button id="syncBtn" class="download-btn" title="Sync data to data.json">🔄 Sync</button>
                     <button id="downloadBtn" class="download-btn" title="Download all data as JSON">📥 Download</button>
                 </div>
                 <div class="tabs-container">
