@@ -22,7 +22,7 @@
       "tasks": [
         {
           "name": "Review Architect Resumes",
-          "completed": false,
+          "completed": true,
           "priority": true
         },
         {
