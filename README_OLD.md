@@ -1,6 +1,6 @@
 # Daily Board
 
-A streamlined daily discipline tracker with **Git-based multi-device synchronization** using GitHub Pages.
+A streamlined daily discipline tracker with **simplified multi-device synchronization** using direct JSON file updates.
 
 ## Features
 
@@ -28,27 +28,31 @@ Track 5 fixed daily habits:
 - Each list can contain multiple items with checkbox tracking
 - Lists are shared across all days (not day-specific)
 
-### Git-Based Multi-Device Synchronization ⭐ 
-- **GitHub integration** - Direct sync with your GitHub repository
+### Simplified Multi-Device Synchronization ⭐ ENHANCED
+- **Token-optional sync** - Use local server without any token configuration ✨ NEW
+- **Multiple sync modes** - Local server, Dropbox, Google Drive (public files), GitHub API, or local-only
+- **Automatic mode detection** - App automatically selects best available sync method
+- **Direct JSON file sync** - No complex API dependencies
 - **Automatic polling** - Checks for updates every 5 seconds
 - **Real-time updates** - Changes appear automatically across all devices
-- **GitHub Pages deployment** - Triggers automatic redeployment
-- **Conflict resolution** - SHA-based version control with timestamp merging
+- **Cloud storage ready** - Works with GitHub, Dropbox, Google Drive (including public shared files)
+- **Conflict resolution** - Timestamp-based merging with SHA versioning (GitHub mode)
 - **Offline-first** - Changes queue locally and sync when online
+- See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup
 
-### Data Retention Policy
+### Data Retention Policy ✨ NEW
 - Automatically maintains a rolling 10-day window of task history
 - Keeps tasks from 5 days in the past to 5 days in the future
 - Periodic cleanup runs hourly to remove old entries
 - Helps keep your data manageable and focused on current/upcoming tasks
 
-### Offline Support
+### Offline Support ✨ NEW
 - Service worker enables offline functionality
 - Changes are queued and synced when connection is restored
 - Visual indicators show online/offline status
 - Works seamlessly even with intermittent connectivity
 
-### Enhanced Error Handling
+### Enhanced Error Handling ✨ NEW
 - Detailed error logging for debugging
 - Error logs stored in browser localStorage
 - View error log from the app footer
@@ -60,11 +64,87 @@ Track 5 fixed daily habits:
 
 1. Clone or download this repository
 2. Open `index.html` in your web browser
-3. Configure GitHub sync:
-   - **GitHub Sync**: Configure a GitHub token for cross-device sync (recommended)
+3. Choose your sync method:
+   - **No Configuration Needed (Recommended)**: Run the local server (`npm install && npm start`) for token-free sync
+   - **Google Drive Public File Sync (Easy)**: Use a publicly shared Google Drive JSON file for read-only sync ✨ NEW
+   - **Dropbox/Google Drive Sync (Advanced)**: Configure cloud storage tokens for full sync
+   - **GitHub Sync (Advanced)**: Configure a GitHub token for cloud-based sync
    - **Local-Only Mode**: Use without any sync for single-device access
 
-### GitHub Sync Setup
+### Sync Modes
+
+Daily Board supports multiple sync modes that are automatically detected:
+
+#### 1. Local Server Sync (Recommended - No Token Needed) ✨ NEW
+
+The easiest way to sync across devices without configuring tokens:
+
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+2. **Start the local server**:
+   ```bash
+   npm start
+   ```
+   Server runs on `http://localhost:3000`
+
+3. **Open the app**:
+   - Open `index.html` in your browser
+   - The app automatically detects the local server
+   - You'll see "✓ Sync: Local Server (No token needed)" in green
+
+4. **Multi-device sync**:
+   - Open the app on any device on your network
+   - All devices sync through the local server
+   - No GitHub token configuration required!
+
+#### 2. Google Drive Public File Sync (Easy - No Token Needed) ✨ NEW
+
+Sync your data using a publicly shared Google Drive JSON file. This is ideal for read-only scenarios where you want to sync data from a central source:
+
+1. **Create a Google Drive JSON file**:
+   - Upload a `data.json` file to Google Drive
+   - Right-click the file and select "Share"
+   - Set sharing to "Anyone with the link" with at least "Viewer" access
+   - Copy the share link (e.g., `https://drive.google.com/file/d/FILE_ID/view?usp=sharing`)
+
+2. **Configure the File ID**:
+   - Extract the file ID from your share link (the part between `/d/` and `/view`)
+   - For example, from `https://drive.google.com/file/d/1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq/view?usp=sharing`
+   - The file ID is: `1AzWSa3AeJQJX3zjm4DEUN5TWY_sCakyq`
+   - Open your browser's developer console (F12)
+   - Run: `localStorage.setItem('googleDrivePublicFileId', 'YOUR_FILE_ID_HERE')`
+   - Or use the helper: `googleDrivePublicProvider.setFileId('YOUR_FILE_ID_HERE')`
+   - Refresh the page
+
+3. **Start Syncing**:
+   - The app will automatically fetch data from the public Google Drive file
+   - You'll see "✓ Sync: Google Drive (Public File)" in green
+   - **Auto-sync checks for updates every 5 seconds** automatically
+   - **Note**: This is a read-only mode - local changes are saved to localStorage only
+
+4. **Extract File ID from URL** (helper function):
+   - You can use the built-in helper to extract the file ID from a share URL:
+   - Run in console: `GoogleDrivePublicSyncProvider.extractFileIdFromUrl('YOUR_SHARE_URL')`
+
+**Benefits**:
+- ✅ No authentication token needed
+- ✅ Easy to set up - just share a file
+- ✅ Perfect for syncing reference data across devices
+- ⚠️ Read-only mode (changes saved locally only)
+
+**Use Cases**:
+- Distribute task templates to a team
+- Sync reference lists across devices
+- Share daily goals with family members
+
+#### 3. Dropbox/Google Drive Sync (Advanced - Token Required)
+
+For full read/write sync with Dropbox or Google Drive, see the [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed setup instructions.
+
+#### 4. GitHub Sync (Advanced - Token Required)
 
 To enable cross-device synchronization via GitHub:
 
@@ -76,24 +156,23 @@ To enable cross-device synchronization via GitHub:
    - Click "Generate token" and copy it
 
 2. **Configure the Token**:
-   - Open the app in your browser
-   - Click "⚙️ Sync Configuration"
-   - Enter your GitHub Personal Access Token
-   - Click "Save Token"
-   - The app will automatically switch to GitHub sync mode
+   - Open your browser's developer console (F12)
+   - Run: `localStorage.setItem('githubToken', 'YOUR_TOKEN_HERE')`
+   - Replace `YOUR_TOKEN_HERE` with your actual token
+   - Refresh the page
 
 3. **Start Syncing**:
    - The app will automatically fetch the latest data from your repository
    - All changes (tasks, disciplines, lists) will be synced to `data.json`
-   - Access your data from any device by setting the same token
+   - Access your data from any device by setting the same token in localStorage
    - **Auto-sync checks for updates every 5 seconds** automatically
    - You'll see "✓ Sync: GitHub API" in blue
 
 **Note**: The repository is configured to use `markvanengelen-gulo/daily-board`. If you fork this repository, update the `GITHUB_CONFIG` object in `app.js` with your username and repository name.
 
-### Local-Only Mode
+#### 5. Local-Only Mode (No Sync)
 
-If no GitHub token is configured:
+If neither the local server nor GitHub token is configured:
 - Data is stored only in browser localStorage
 - Works fully offline
 - Data is device-specific (no cross-device sync)
@@ -103,10 +182,26 @@ If no GitHub token is configured:
 
 To sync across multiple devices (phone, laptop, desktop, etc.):
 
+**Option 1: Local Server Sync (No Token Needed)**
+
+1. **Run the server** on one device (e.g., your main computer):
+   ```bash
+   cd daily-board
+   npm install
+   npm start
+   ```
+
+2. **Access from any device** on the same network:
+   - Open `http://YOUR-COMPUTER-IP:3000` in a browser
+   - Changes sync automatically across all devices
+   - No token configuration needed!
+
+**Option 2: GitHub Sync (With Token)**
+
 1. **Configure the same GitHub token** on each device:
-   - Click "⚙️ Sync Configuration"
-   - Enter your GitHub Personal Access Token
-   - Click "Save Token"
+   ```javascript
+   localStorage.setItem('githubToken', 'YOUR_TOKEN_HERE')
+   ```
 
 2. **Automatic synchronization**:
    - Changes on any device are saved to GitHub immediately
@@ -114,10 +209,8 @@ To sync across multiple devices (phone, laptop, desktop, etc.):
    - Updates appear automatically without manual refresh
    - "Last sync" indicator shows synchronization status
 
-3. **GitHub Pages Integration**:
-   - Each sync commits changes to `data.json` and pushes to GitHub
-   - GitHub Pages automatically redeploys with the new changes
-   - All devices pull the latest data from GitHub Pages
+3. **For alternative cloud storage** (Dropbox, Google Drive):
+   - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for detailed instructions
 
 ### Navigation
 - Use the "Previous" and "Next" buttons to navigate between days
@@ -155,7 +248,6 @@ When a GitHub token is configured:
 - Automatic sync on every change
 - SHA-based version control to handle concurrent updates
 - Local storage backup for offline access
-- GitHub Pages automatic redeployment on data changes
 
 ### Local-Only Mode
 Without a GitHub token:
@@ -185,9 +277,9 @@ Without a GitHub token:
 }
 ```
 
-## Git-Based Sync Architecture
+## Simplified Architecture
 
-Daily Board uses a **Git-based architecture** for multi-device synchronization:
+Daily Board uses a **simplified, API-free architecture** for multi-device synchronization:
 
 ### Key Principles
 
@@ -196,11 +288,11 @@ Daily Board uses a **Git-based architecture** for multi-device synchronization:
    - No database, no complex backend
    - Easy to backup, migrate, and understand
 
-2. **GitHub Integration**
-   - Uses GitHub REST API for sync
-   - Commits and pushes changes to `data.json`
-   - GitHub Pages automatically redeploys on changes
-   - All devices pull updates from GitHub Pages
+2. **Cloud Storage Integration**
+   - Currently uses GitHub as default (with API)
+   - Can be adapted for Dropbox, Google Drive, or any cloud service
+   - File sync services handle the synchronization
+   - See [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md) for alternatives
 
 3. **Automatic Synchronization**
    - **Auto-polling**: Checks for remote updates every 5 seconds
@@ -217,16 +309,19 @@ Daily Board uses a **Git-based architecture** for multi-device synchronization:
 5. **Multi-Device Support**
    - Same data accessible from any device
    - Automatic cross-device synchronization
+   - Optional WebSocket server for instant updates
    - Tested on desktop, mobile, and tablet
 
 ### How It Works
 
 ```
-User Action → localStorage (immediate) → Sync Queue → GitHub → GitHub Pages → Other Devices
-                                             ↓
-                                       Auto-poll detects
-                                       change (5s)
+User Action → localStorage (immediate) → Sync Queue → Cloud Storage → Other Devices
+                                            ↓
+                                      Auto-poll detects
+                                      change (5s)
 ```
+
+For detailed technical information and alternative cloud storage options, see [CLOUD_SYNC_GUIDE.md](CLOUD_SYNC_GUIDE.md).
 
 ## Security
 
@@ -241,7 +336,9 @@ User Action → localStorage (immediate) → Sync Queue → GitHub → GitHub Pa
 - No third-party services are used
 - You have complete control over your data
 
-## Automatic Multi-Device Synchronization
+## New Features Details
+
+### Automatic Multi-Device Synchronization ⭐ NEW
 
 Real-time synchronization across all your devices:
 
@@ -251,13 +348,12 @@ Real-time synchronization across all your devices:
 - **No Manual Refresh**: Updates happen in the background without user intervention
 - **Conflict Detection**: Automatically detects and handles concurrent edits
 - **Smart Merging**: Timestamp-based conflict resolution with user prompts
-- **GitHub Pages**: Automatic redeployment triggers on data changes
 
 This enables seamless task management across your phone, laptop, desktop, and tablet!
 
-## Data Retention Policy
+### Data Retention Policy
 
-The app implements an automatic data retention policy to keep your task history manageable:
+The app now implements an automatic data retention policy to keep your task history manageable:
 
 - **10-Day Rolling Window**: Only tasks from the past 5 days and next 5 days are kept
 - **Automatic Cleanup**: Runs on app startup and every hour to remove old entries
@@ -266,9 +362,9 @@ The app implements an automatic data retention policy to keep your task history 
 
 This helps prevent data bloat while keeping relevant task history available.
 
-## Offline Support
+### Offline Support
 
-The app works offline using modern web technologies:
+The app now works offline using modern web technologies:
 
 - **Service Worker**: Caches app assets for offline access
 - **Sync Queue**: Changes made offline are queued and synced when connection restores
@@ -277,7 +373,7 @@ The app works offline using modern web technologies:
 
 All data changes are saved to localStorage when offline, then automatically synced to GitHub when you're back online.
 
-## Enhanced Error Handling
+### Enhanced Error Handling
 
 Better error reporting and debugging capabilities:
 
@@ -307,3 +403,13 @@ If old tasks are missing:
 - The app keeps only 10 days of history (5 back, 5 forward)
 - Use the Download button to export full data before cleanup
 - Adjust `DATA_RETENTION` settings if needed
+
+## WebSocket Server (Optional)
+
+For real-time sync across devices, you can optionally run the WebSocket server:
+
+1. Install dependencies: `npm install`
+2. Start server: `npm start`
+3. Enable WebSocket in app.js (see WEBSOCKET_SETUP.md)
+
+See [WEBSOCKET_SETUP.md](WEBSOCKET_SETUP.md) for detailed instructions.
