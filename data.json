@@ -66,6 +66,10 @@
           "priority": true
         },
         {
+          "name": "AGLC Review Architecture Document",
+          "completed": false
+        },
+        {
           "name": "Quantum Days planning prep",
           "completed": false
         },
@@ -87,10 +91,6 @@
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
-        },
-        {
-          "name": "AGLC Review Architecture Document",
           "completed": false
         }
       ]
