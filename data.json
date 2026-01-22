@@ -88,6 +88,10 @@
         {
           "name": "Quantum Days planning prep",
           "completed": false
+        },
+        {
+          "name": "AGLC Review Architecture Document",
+          "completed": false
         }
       ]
     }
