@@ -68,12 +68,13 @@
         },
         {
           "name": "LNGC CoPilot slides",
-          "completed": false,
+          "completed": true,
           "priority": false
         },
         {
           "name": "AGLC Review Architecture Document",
-          "completed": false
+          "completed": false,
+          "priority": true
         },
         {
           "name": "Quantum Days planning prep",
