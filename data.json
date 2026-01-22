@@ -80,6 +80,10 @@
         {
           "name": "Passport renewal 5 Feb Edmonton",
           "completed": false
+        },
+        {
+          "name": "Prepare Lynx Energy SharePoint Online",
+          "completed": false
         }
       ]
     }
