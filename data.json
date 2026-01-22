@@ -66,6 +66,10 @@
           "priority": true
         },
         {
+          "name": "Quantum Days planning prep",
+          "completed": false
+        },
+        {
           "name": "Prepare Lynx Energy SharePoint Online",
           "completed": false
         },
@@ -83,10 +87,6 @@
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
-        },
-        {
-          "name": "Quantum Days planning prep",
           "completed": false
         },
         {
