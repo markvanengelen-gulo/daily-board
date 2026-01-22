@@ -39,11 +39,12 @@
           "completed": false
         },
         {
-          "name": "CNRL EIE slides",
-          "completed": false
+          "name": "Send Harvest Right info photo e.d.",
+          "completed": false,
+          "priority": true
         },
         {
-          "name": "Send Harvest Right info photo e.d.",
+          "name": "CNRL EIE slides",
           "completed": false
         },
         {
