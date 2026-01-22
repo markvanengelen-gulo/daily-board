@@ -35,11 +35,6 @@
           "completed": true
         },
         {
-          "name": "LNGC CoPilot slides",
-          "completed": false,
-          "priority": true
-        },
-        {
           "name": "Send Harvest Right info photo e.d.",
           "completed": true,
           "priority": false
@@ -80,6 +75,11 @@
         {
           "name": "Call Dylan: flooring & emergency communication plan",
           "completed": false
+        },
+        {
+          "name": "LNGC CoPilot slides",
+          "completed": false,
+          "priority": true
         }
       ]
     }
