@@ -42,7 +42,7 @@
         {
           "name": "Send Harvest Right info photo e.d.",
           "completed": false,
-          "priority": false
+          "priority": true
         },
         {
           "name": "CNRL EIE slides",
