@@ -98,11 +98,11 @@
         },
         {
           "name": "Call Harvest Right @ 12:30",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Call Andrea @ 3:30 pm",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
