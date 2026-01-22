@@ -51,6 +51,10 @@
           "completed": true
         },
         {
+          "name": "Send Harvest Right info photo e.d.",
+          "completed": false
+        },
+        {
           "name": "Book travel 3-6 Feb YYC/YEG",
           "completed": false
         },
@@ -68,10 +72,6 @@
         },
         {
           "name": "REEPS Sifco docs",
-          "completed": false
-        },
-        {
-          "name": "Send Harvest Right info photo e.d.",
           "completed": false
         }
       ]
