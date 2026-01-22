@@ -23,7 +23,7 @@
         {
           "name": "Review Architect Resumes",
           "completed": true,
-          "priority": true
+          "priority": false
         },
         {
           "name": "Target Hire Rob",
@@ -68,6 +68,10 @@
         },
         {
           "name": "REEPS Sifco docs",
+          "completed": false
+        },
+        {
+          "name": "Send Harvest Right info photo e.d.",
           "completed": false
         }
       ]
