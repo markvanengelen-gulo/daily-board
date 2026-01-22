@@ -49,10 +49,6 @@
           "completed": false
         },
         {
-          "name": "Ovintiv Renwal",
-          "completed": false
-        },
-        {
           "name": "Call Harvest right @ 11",
           "completed": true
         },
@@ -80,7 +76,12 @@
     },
     "2026-01-22": {
       "disciplines": {},
-      "tasks": []
+      "tasks": [
+        {
+          "name": "Ovintiv Renwal",
+          "completed": false
+        }
+      ]
     }
   },
   "tabs": [
