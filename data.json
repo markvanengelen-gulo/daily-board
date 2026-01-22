@@ -61,10 +61,6 @@
           "completed": false
         },
         {
-          "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
-        },
-        {
           "name": "LNGC CoPilot slides",
           "completed": false,
           "priority": true
@@ -79,6 +75,10 @@
         },
         {
           "name": "Passport renewal 5 Feb Edmonton",
+          "completed": false
+        },
+        {
+          "name": "Call Dylan: flooring & emergency communication plan",
           "completed": false
         },
         {
