@@ -84,6 +84,10 @@
         {
           "name": "Prepare Lynx Energy SharePoint Online",
           "completed": false
+        },
+        {
+          "name": "Quantum Days planning prep",
+          "completed": false
         }
       ]
     }
