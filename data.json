@@ -69,7 +69,7 @@
         {
           "name": "LNGC CoPilot slides",
           "completed": false,
-          "priority": true
+          "priority": false
         },
         {
           "name": "AGLC Review Architecture Document",
