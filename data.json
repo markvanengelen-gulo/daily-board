@@ -40,16 +40,8 @@
           "priority": false
         },
         {
-          "name": "CNRL EIE slides",
-          "completed": false
-        },
-        {
           "name": "Call Harvest right @ 11",
           "completed": true
-        },
-        {
-          "name": "Book travel 3-6 Feb YYC/YEG",
-          "completed": false
         },
         {
           "name": "Interview Chamber bookkeeper",
@@ -80,6 +72,14 @@
           "name": "LNGC CoPilot slides",
           "completed": false,
           "priority": true
+        },
+        {
+          "name": "CNRL EIE slides",
+          "completed": false
+        },
+        {
+          "name": "Book travel 3-6 Feb YYC/YEG",
+          "completed": false
         }
       ]
     }
