@@ -66,6 +66,10 @@
           "priority": true
         },
         {
+          "name": "Prepare Lynx Energy SharePoint Online",
+          "completed": false
+        },
+        {
           "name": "CNRL EIE slides",
           "completed": false
         },
@@ -79,10 +83,6 @@
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
-        },
-        {
-          "name": "Prepare Lynx Energy SharePoint Online",
           "completed": false
         },
         {
