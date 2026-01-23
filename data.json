@@ -108,7 +108,8 @@
       "tasks": [
         {
           "name": "CNRL EIE slides",
-          "completed": false
+          "completed": false,
+          "priority": true
         },
         {
           "name": "AGLC Review Architecture Document",
