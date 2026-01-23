@@ -109,6 +109,10 @@
         {
           "name": "CNRL EIE Deck",
           "completed": false
+        },
+        {
+          "name": "Lynx SharePoint proposal",
+          "completed": false
         }
       ]
     },
