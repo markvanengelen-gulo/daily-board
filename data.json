@@ -103,14 +103,6 @@
       },
       "tasks": [
         {
-          "name": "Ovintiv Renwal",
-          "completed": false
-        },
-        {
-          "name": "Lynx SharePoint Online proposal",
-          "completed": false
-        },
-        {
           "name": "AGLC Review Architecture Document",
           "completed": false,
           "priority": false
@@ -121,6 +113,19 @@
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
+          "completed": false
+        }
+      ]
+    },
+    "2026-01-24": {
+      "disciplines": {},
+      "tasks": [
+        {
+          "name": "Ovintiv Renwal",
+          "completed": false
+        },
+        {
+          "name": "Lynx SharePoint Online proposal",
           "completed": false
         }
       ]
