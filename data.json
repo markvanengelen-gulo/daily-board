@@ -107,17 +107,17 @@
       "disciplines": {},
       "tasks": [
         {
+          "name": "AGLC Review Architecture Document",
+          "completed": false,
+          "priority": false
+        },
+        {
           "name": "Ovintiv Renwal",
           "completed": false
         },
         {
           "name": "Lynx SharePoint Online proposal",
           "completed": false
-        },
-        {
-          "name": "AGLC Review Architecture Document",
-          "completed": false,
-          "priority": false
         },
         {
           "name": "CNRL EIE slides",
