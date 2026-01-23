@@ -138,6 +138,10 @@
         {
           "name": "Print ESTA",
           "completed": false
+        },
+        {
+          "name": "Chamber Bookkeeper email",
+          "completed": false
         }
       ]
     }
