@@ -105,6 +105,10 @@
         {
           "name": "AGLC Design review",
           "completed": false
+        },
+        {
+          "name": "CNRL EIE Deck",
+          "completed": false
         }
       ]
     },
