@@ -121,6 +121,10 @@
         {
           "name": "Ovintiv renewal",
           "completed": false
+        },
+        {
+          "name": "Strijken",
+          "completed": false
         }
       ]
     },
