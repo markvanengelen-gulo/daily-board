@@ -76,10 +76,6 @@
           "completed": true
         },
         {
-          "name": "CNRL EIE slides",
-          "completed": false
-        },
-        {
           "name": "Book travel 3-6 Feb YYC/YEG",
           "completed": true
         },
@@ -94,10 +90,6 @@
         {
           "name": "Call Andrea @ 3:30 pm",
           "completed": true
-        },
-        {
-          "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
         }
       ]
     },
@@ -112,6 +104,14 @@
           "name": "AGLC Review Architecture Document",
           "completed": false,
           "priority": false
+        },
+        {
+          "name": "CNRL EIE slides",
+          "completed": false
+        },
+        {
+          "name": "Call Dylan: flooring & emergency communication plan",
+          "completed": false
         }
       ]
     }
