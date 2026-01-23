@@ -107,6 +107,10 @@
       "disciplines": {},
       "tasks": [
         {
+          "name": "CNRL EIE slides",
+          "completed": false
+        },
+        {
           "name": "AGLC Review Architecture Document",
           "completed": false,
           "priority": false
@@ -117,10 +121,6 @@
         },
         {
           "name": "Lynx SharePoint Online proposal",
-          "completed": false
-        },
-        {
-          "name": "CNRL EIE slides",
           "completed": false
         },
         {
