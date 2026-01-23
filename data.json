@@ -125,6 +125,10 @@
         {
           "name": "Strijken",
           "completed": false
+        },
+        {
+          "name": "Reis spul inpakken",
+          "completed": false
         }
       ]
     },
