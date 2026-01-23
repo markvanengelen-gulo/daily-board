@@ -129,6 +129,10 @@
         {
           "name": "Reis spul inpakken",
           "completed": false
+        },
+        {
+          "name": "PADI boat dive boeken",
+          "completed": false
         }
       ]
     },
