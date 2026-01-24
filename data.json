@@ -111,14 +111,6 @@
           "completed": true
         },
         {
-          "name": "Strijken",
-          "completed": false
-        },
-        {
-          "name": "Reis spul inpakken",
-          "completed": false
-        },
-        {
           "name": "PADI boat dive boeken",
           "completed": true
         },
@@ -203,6 +195,14 @@
         },
         {
           "name": "AGLC Design review",
+          "completed": false
+        },
+        {
+          "name": "Reis spul inpakken",
+          "completed": false
+        },
+        {
+          "name": "Strijken",
           "completed": false
         }
       ]
