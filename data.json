@@ -103,10 +103,6 @@
       },
       "tasks": [
         {
-          "name": "AGLC Design review",
-          "completed": false
-        },
-        {
           "name": "CNRL EIE Deck",
           "completed": true
         },
@@ -128,7 +124,7 @@
         },
         {
           "name": "Verjaardag Marije - Apple crumble",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Verjaardag Marije - spul klaarzetten",
@@ -203,6 +199,10 @@
         },
         {
           "name": "Lynx SharePoint proposal",
+          "completed": false
+        },
+        {
+          "name": "AGLC Design review",
           "completed": false
         }
       ]
