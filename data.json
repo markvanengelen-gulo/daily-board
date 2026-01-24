@@ -137,7 +137,7 @@
       "tasks": [
         {
           "name": "CNRL EIE slides",
-          "completed": false,
+          "completed": true,
           "priority": true
         },
         {
@@ -155,7 +155,7 @@
         },
         {
           "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Dion banen email",
