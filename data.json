@@ -187,11 +187,11 @@
         },
         {
           "name": "Ovintiv renewal",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Lynx SharePoint proposal",
-          "completed": false
+          "completed": true
         },
         {
           "name": "AGLC Design review",
