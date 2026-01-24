@@ -125,6 +125,10 @@
         {
           "name": "Call Dylan: Flooring and Emergency Plan",
           "completed": true
+        },
+        {
+          "name": "SGS party",
+          "completed": false
         }
       ]
     },
