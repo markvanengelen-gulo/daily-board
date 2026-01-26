@@ -202,7 +202,11 @@
       "tasks": []
     },
     "2026-01-25": {
-      "disciplines": {},
+      "disciplines": {
+        "0": true,
+        "1": true,
+        "2": true
+      },
       "tasks": [
         {
           "name": "AGLC Review Architecture Document",
