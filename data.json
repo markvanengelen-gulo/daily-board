@@ -162,7 +162,7 @@
         },
         {
           "name": "Marije verjaardag spul klaarzetten",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Print ESTA",
@@ -181,12 +181,8 @@
           "completed": true
         },
         {
-          "name": "Reis spul inpakken",
-          "completed": false
-        },
-        {
           "name": "Strijken",
-          "completed": false
+          "completed": true
         }
       ]
     },
