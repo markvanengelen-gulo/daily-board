@@ -133,7 +133,11 @@
       ]
     },
     "2026-01-24": {
-      "disciplines": {},
+      "disciplines": {
+        "2": true,
+        "3": true,
+        "4": true
+      },
       "tasks": [
         {
           "name": "CNRL EIE slides",
