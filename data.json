@@ -201,12 +201,7 @@
       },
       "tasks": [
         {
-          "name": "AGLC Review Architecture Document",
-          "completed": false,
-          "priority": false
-        },
-        {
-          "name": "Ovintiv Renwal",
+          "name": "Lynx SharePoint Online proposal",
           "completed": false
         }
       ]
@@ -219,9 +214,18 @@
         "3": true,
         "4": true
       },
+      "tasks": []
+    },
+    "2026-01-27": {
+      "disciplines": {},
       "tasks": [
         {
-          "name": "Lynx SharePoint Online proposal",
+          "name": "AGLC Review Architecture Document",
+          "completed": false,
+          "priority": false
+        },
+        {
+          "name": "Ovintiv Renwal",
           "completed": false
         }
       ]
