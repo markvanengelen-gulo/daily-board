@@ -152,10 +152,6 @@
     },
     "2026-01-26": {
       "disciplines": {},
-      "tasks": []
-    },
-    "2026-01-25": {
-      "disciplines": {},
       "tasks": [
         {
           "name": "AGLC Review Architecture Document",
@@ -171,6 +167,10 @@
           "completed": false
         }
       ]
+    },
+    "2026-01-25": {
+      "disciplines": {},
+      "tasks": []
     }
   },
   "tabs": [
