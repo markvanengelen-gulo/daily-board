@@ -151,11 +151,6 @@
       },
       "tasks": [
         {
-          "name": "AGLC Review Architecture Document",
-          "completed": false,
-          "priority": true
-        },
-        {
           "name": "Ovintiv Renwal",
           "completed": false
         },
@@ -189,6 +184,16 @@
     "2026-01-25": {
       "disciplines": {},
       "tasks": []
+    },
+    "2026-01-28": {
+      "disciplines": {},
+      "tasks": [
+        {
+          "name": "AGLC Review Architecture Document",
+          "completed": false,
+          "priority": true
+        }
+      ]
     }
   },
   "tabs": [
