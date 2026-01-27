@@ -168,7 +168,8 @@
         },
         {
           "name": "AGLC AML proposal review",
-          "completed": false
+          "completed": false,
+          "priority": true
         }
       ]
     },
