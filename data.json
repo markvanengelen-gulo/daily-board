@@ -104,16 +104,12 @@
           "priority": true
         },
         {
-          "name": "Lynx SharePoint Online proposal",
-          "completed": false
-        },
-        {
           "name": "Call Dylan: flooring & emergency communication plan",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Dion banen email",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Chamber Bookkeeper email",
@@ -168,6 +164,10 @@
         },
         {
           "name": "Ovintiv Renwal",
+          "completed": false
+        },
+        {
+          "name": "Lynx SharePoint Online proposal",
           "completed": false
         }
       ]
