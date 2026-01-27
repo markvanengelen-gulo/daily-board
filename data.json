@@ -152,7 +152,7 @@
         {
           "name": "AGLC Review Architecture Document",
           "completed": false,
-          "priority": false
+          "priority": true
         },
         {
           "name": "Ovintiv Renwal",
