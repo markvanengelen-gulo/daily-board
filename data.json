@@ -161,17 +161,16 @@
         {
           "name": "Lynx SharePoint Online proposal",
           "completed": false
-        }
-      ]
-    },
-    "2026-01-26": {
-      "disciplines": {},
-      "tasks": [
+        },
         {
           "name": "Email Amanda bookkeeper",
           "completed": false
         }
       ]
+    },
+    "2026-01-26": {
+      "disciplines": {},
+      "tasks": []
     },
     "2026-01-25": {
       "disciplines": {},
