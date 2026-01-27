@@ -100,7 +100,7 @@
       "tasks": [
         {
           "name": "CNRL EIE slides",
-          "completed": false,
+          "completed": true,
           "priority": true
         },
         {
@@ -161,6 +161,14 @@
         "2": true,
         "3": true
       },
+      "tasks": []
+    },
+    "2026-01-26": {
+      "disciplines": {},
+      "tasks": []
+    },
+    "2026-01-25": {
+      "disciplines": {},
       "tasks": []
     }
   },
