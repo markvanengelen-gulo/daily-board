@@ -165,6 +165,10 @@
         {
           "name": "Email Amanda bookkeeper",
           "completed": false
+        },
+        {
+          "name": "AGLC AML proposal review",
+          "completed": false
         }
       ]
     },
