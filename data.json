@@ -125,19 +125,19 @@
         },
         {
           "name": "Marije verjaardag spul klaarzetten",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Print ESTA",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Marije Apple crumble maken",
-          "completed": false
+          "completed": true
         },
         {
           "name": "Reis spul uitzoeken",
-          "completed": false
+          "completed": true
         }
       ]
     },
