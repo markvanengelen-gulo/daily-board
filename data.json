@@ -170,6 +170,10 @@
           "name": "AGLC AML proposal review",
           "completed": false,
           "priority": true
+        },
+        {
+          "name": "Email Angela D approval",
+          "completed": false
         }
       ]
     },
