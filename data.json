@@ -151,10 +151,6 @@
       },
       "tasks": [
         {
-          "name": "Lynx SharePoint Online proposal",
-          "completed": false
-        },
-        {
           "name": "Email Amanda bookkeeper",
           "completed": true
         },
@@ -195,6 +191,10 @@
         },
         {
           "name": "PPHS solution overview RFI",
+          "completed": false
+        },
+        {
+          "name": "Lynx SharePoint Online proposal",
           "completed": false
         }
       ]
